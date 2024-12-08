@@ -3,6 +3,7 @@
 
 #include <QListWidgetItem>
 #include <QMainWindow>
+#include <QSettings>
 
 #include "player.hpp"
 
@@ -16,6 +17,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    QString createEnvironment();
     void resetControls();
     QString getMusicName(const QString &filename);
 
@@ -25,6 +27,7 @@ public:
 
 private:
     Ui::MainWindow *m_ui;
+    QSettings *m_settings;
     Player m_player;
     QStringList m_playlist;
     QString m_currentMusic;
@@ -44,6 +47,8 @@ private slots:
     void finished();
     void onPlaylistItemDoubleClicked(QListWidgetItem *item);
     void onOpenFilesActionRequested();
+    void onOpenPlayListActionRequested();
+    void onSavePlayListActionRequested();
     void onPlayButtonClicked();
     void onStopButtonClicked();
     void onAutoRepeatButtonClicked();

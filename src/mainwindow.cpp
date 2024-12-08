@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QStandardPaths>
 
@@ -20,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->volumeSlider->setToolTip(tr("Current volume level: %1%").arg(m_ui->volumeSlider->value()));
     m_player.setVolume(m_ui->volumeSlider->value());
 
+    m_settings = new QSettings(createEnvironment(), QSettings::IniFormat);
+
     connect(&m_player, &Player::error, this, &MainWindow::error);
     connect(&m_player, &Player::warning, this, &MainWindow::warning);
     connect(&m_player, &Player::durationChanged, this, &MainWindow::durationChanged);
@@ -31,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
     connect(m_ui->playlistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
     connect(m_ui->openFilesButton, &QPushButton::clicked, this, &MainWindow::onOpenFilesActionRequested);
+    connect(m_ui->actionSavePlaylist, &QAction::triggered, this, &MainWindow::onSavePlayListActionRequested);
+    connect(m_ui->savePlaylistButton, &QPushButton::clicked, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_ui->seekMusicSlider, &QSlider::sliderPressed, this, &MainWindow::onSeekSliderPressed);
     connect(m_ui->seekMusicSlider, &QSlider::sliderReleased, this, &MainWindow::onSeekSliderReleased);
     connect(m_ui->playButton, &QPushButton::clicked, this, &MainWindow::onPlayButtonClicked);
@@ -42,6 +47,19 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete m_ui;
+}
+
+QString MainWindow::createEnvironment()
+{
+    auto appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir d;
+    if (not d.exists(appDataLocation)) {
+        d.mkpath(appDataLocation);
+    }
+
+    auto filename = QString("%1%2%3")
+                        .arg(appDataLocation, QDir::separator(), PROJECT_NAME".conf");
+    return filename;
 }
 
 void MainWindow::resetControls()
@@ -183,15 +201,19 @@ void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
 void MainWindow::onOpenFilesActionRequested()
 {
     auto dir = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
-    m_playlist = QFileDialog::getOpenFileNames(this,
+    auto filters = tr("Audio files (*.aac *.avi *.mp3 *.wav)");
+
+    auto playlist = QFileDialog::getOpenFileNames(this,
                                                tr("Open Audio Files"),
                                                dir,
-                                               tr("Audio files (*.mp3)")
+                                               filters
                                                );
 
-    if (m_playlist.isEmpty()) {
+    if (playlist.isEmpty()) {
         return;
     }
+
+    m_playlist << playlist;
 
     m_player.setPlayList(m_playlist);
     hasRepeated = false;
@@ -200,6 +222,52 @@ void MainWindow::onOpenFilesActionRequested()
         auto name = getMusicName(filename);
         m_ui->playlistWidget->addItem(name);
     }
+}
+
+void MainWindow::onOpenPlayListActionRequested()
+{
+    // TODO
+}
+
+void MainWindow::onSavePlayListActionRequested()
+{
+    if (m_playlist.isEmpty()) {
+        QMessageBox::warning(this,
+                             tr("Warning"),
+                             tr("You must first load some music files."));
+        return;
+    }
+
+    auto name = QInputDialog::getText(this,
+                                      tr("Give it a name"),
+                                      tr("How should we call this awesome playlist?"));
+    if (name.isEmpty()) {
+        return;
+    }
+
+    m_settings->beginGroup("Playlists");
+    if (m_settings->childGroups().contains(name, Qt::CaseInsensitive)) {
+        auto reply = QMessageBox::question(this,
+                                           tr("Oops"),
+                                           tr("It seems that this playlist already exists. "
+                                              "Would you like to replace it?")
+                                           );
+        if (reply != QMessageBox::Yes) {
+            m_settings->endGroup();
+            return;
+        }
+    }
+
+    m_settings->beginGroup(name);
+    for (const auto &filename : m_playlist) {
+        m_settings->setValue(filename, getMusicName(filename));
+    }
+    m_settings->endGroup(); /* name */
+    m_settings->endGroup(); /* Playlists */
+
+    QMessageBox::information(this,
+                             tr("Yay!"),
+                             tr("Now you can play all the awesome music %1 has!").arg(name));
 }
 
 void MainWindow::onPlayButtonClicked()
