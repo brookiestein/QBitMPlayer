@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>i18n/QBitMPlayer_es_MX.ts</file>
+        <file>i18n/QBitMPlayer_es_MX.qm</file>
+    </qresource>
+</RCC>

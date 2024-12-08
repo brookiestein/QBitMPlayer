@@ -13,7 +13,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 
-set(TS_FILES QBitMPlayer_es_MX.ts)
+set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
 
 set(PROJECT_SOURCES
     config.hpp.in
@@ -23,12 +23,15 @@ set(PROJECT_SOURCES
     mainwindow.ui
     player.hpp
     player.cpp
-    ${TS_FILES}
+    ../${TS_FILES}
+    ../resources/resources.qrc
 )
+
+list(TRANSFORM PROJECT_SOURCES PREPEND "src/")
 
 set(LICENSE "MIT")
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
-configure_file(config.hpp.in config.hpp)
+configure_file(src/config.hpp.in config.hpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
