@@ -7,6 +7,7 @@ Player::Player(const QStringList &playlist, QObject *parent)
     , m_audioOutput(new QAudioOutput(this))
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_playlist(playlist)
+    , m_currentMusicIndex(-1)
 {
     m_mediaPlayer->setAudioOutput(m_audioOutput);
 
@@ -23,13 +24,25 @@ bool Player::hasNext()
 void Player::setCurrent(const QString &musicFile)
 {
     m_mediaPlayer->setSource(QUrl::fromLocalFile(musicFile));
+    if (m_playlist.contains(musicFile)) {
+        m_currentMusicIndex = m_playlist.indexOf(musicFile);
+    }
+}
+
+void Player::setCurrent(qint64 index)
+{
+    if (index < 0 or index >= m_playlist.size()) {
+        emit error(tr("There's no such music at index: %1.").arg(index));
+        return;
+    }
+
+    m_currentMusicIndex = index;
+    m_mediaPlayer->setSource(QUrl::fromLocalFile(m_playlist[index]));
 }
 
 void Player::setPlayList(const QStringList &playlist)
 {
     m_playlist = playlist;
-    m_currentMusicIndex = 0;
-    setCurrent(m_playlist[0]);
 }
 
 void Player::setVolume(float volume)
@@ -61,6 +74,20 @@ bool Player::play()
     }
 
     m_mediaPlayer->play();
+    return true;
+}
+
+bool Player::playPrevious()
+{
+    if (m_currentMusicIndex == 0) {
+        emit warning(tr("There's no previous music to play."));
+        return false;
+    }
+
+    --m_currentMusicIndex;
+    auto music = m_playlist[m_currentMusicIndex];
+    setCurrent(music);
+    play();
     return true;
 }
 

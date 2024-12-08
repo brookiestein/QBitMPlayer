@@ -32,7 +32,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QListView" name="playlistView"/>
+         <widget class="QListWidget" name="playlistWidget"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="playlistControlsHorizontalLayout">
@@ -92,9 +92,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="openSingleFileButton">
+           <widget class="QPushButton" name="openFilesButton">
             <property name="text">
-             <string>Open File</string>
+             <string>Open Files</string>
             </property>
            </widget>
           </item>
@@ -212,8 +212,100 @@
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpenFiles"/>
+    <addaction name="actionOpenPlaylist"/>
+    <addaction name="actionClosePlaylist"/>
+    <addaction name="actionSavePlaylist"/>
+    <addaction name="actionRemovePlaylist"/>
+    <addaction name="separator"/>
+    <addaction name="actionSettings"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpenFiles">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+   </property>
+   <property name="text">
+    <string>&amp;Open Files</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::HelpAbout"/>
+   </property>
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::HelpAbout"/>
+   </property>
+   <property name="text">
+    <string>About &amp;Qt</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>&amp;Settings</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::WindowClose"/>
+   </property>
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="actionOpenPlaylist">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
+   </property>
+   <property name="text">
+    <string>Open Playlist</string>
+   </property>
+  </action>
+  <action name="actionClosePlaylist">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::ListRemove"/>
+   </property>
+   <property name="text">
+    <string>Close Playlist</string>
+   </property>
+  </action>
+  <action name="actionSavePlaylist">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+   </property>
+   <property name="text">
+    <string>Save Playlist</string>
+   </property>
+  </action>
+  <action name="actionRemovePlaylist">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditDelete"/>
+   </property>
+   <property name="text">
+    <string>Remove Playlist</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

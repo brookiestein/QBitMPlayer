@@ -15,11 +15,13 @@ class Player : public QObject
 public:
     explicit Player(const QStringList &playlist = QStringList(), QObject *parent = nullptr);
     void setPlayList(const QStringList &playlist);
+    void setCurrent(qint64 index);
 
 public slots:
     void setVolume(float volume);
     bool pause();
     bool play();
+    bool playPrevious();
     bool playNext();
     void stop();
     void seek(qint64 position);
@@ -39,7 +41,7 @@ signals:
 
 private:
     QStringList m_playlist;
-    decltype(m_playlist.size()) m_currentMusicIndex;
+    qint64 m_currentMusicIndex;
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
 };

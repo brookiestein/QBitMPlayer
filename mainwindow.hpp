@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
+#include <QListWidgetItem>
 #include <QMainWindow>
 
 #include "player.hpp"
@@ -15,6 +16,9 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    void resetControls();
+    QString getMusicName(const QString &filename);
+
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -22,6 +26,7 @@ public:
 private:
     Ui::MainWindow *m_ui;
     Player m_player;
+    QStringList m_playlist;
     QString m_currentMusic;
     qint8 m_hours;
     qint8 m_minutes;
@@ -37,12 +42,14 @@ private slots:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
-    void onOpenSingleFileButtonClicked();
+    void onPlaylistItemDoubleClicked(QListWidgetItem *item);
+    void onOpenFilesActionRequested();
     void onPlayButtonClicked();
     void onStopButtonClicked();
     void onAutoRepeatButtonClicked();
     void onSeekSliderPressed();
     void onSeekSliderReleased();
     void onVolumeSliderValueChanged(int value);
+    void about();
 };
 #endif // MAINWINDOW_HPP

@@ -4,9 +4,13 @@
 #include <QLocale>
 #include <QTranslator>
 
+#include "config.hpp"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QApplication::setApplicationName(PROJECT_NAME);
+    QApplication::setApplicationVersion(PROJECT_VERSION);
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

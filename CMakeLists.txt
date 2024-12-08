@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(QBitMPlayer VERSION 2.0.0 LANGUAGES CXX)
+project(QBitMPlayer VERSION 2.1.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -8,6 +8,7 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
@@ -15,6 +16,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia 
 set(TS_FILES QBitMPlayer_es_MX.ts)
 
 set(PROJECT_SOURCES
+    config.hpp.in
     main.cpp
     mainwindow.cpp
     mainwindow.hpp
@@ -24,31 +26,39 @@ set(PROJECT_SOURCES
     ${TS_FILES}
 )
 
+set(LICENSE "MIT")
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+configure_file(config.hpp.in config.hpp)
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+
     qt_add_executable(QBitMPlayer
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${QM_FILES}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET QBitMPlayer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 
-qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
+    qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+
     if(ANDROID)
         add_library(QBitMPlayer SHARED
             ${PROJECT_SOURCES}
+            ${QM_FILES}
         )
     # Define properties for Android with Qt 5 after find_package() calls as:
     #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-else()
-    add_executable(QBitMPlayer
-        ${PROJECT_SOURCES}
-    )
-endif()
-
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+    else()
+        add_executable(QBitMPlayer
+            ${PROJECT_SOURCES}
+            ${QM_FILES}
+        )
+    endif()
 endif()
 
 target_link_libraries(QBitMPlayer PRIVATE
