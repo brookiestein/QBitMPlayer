@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# QtCreator user config file50
+CMakeLists.txt.user
+
+# Build directory
+build
