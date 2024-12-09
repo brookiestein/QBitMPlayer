@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
+#include <QCloseEvent>
 #include <QListWidgetItem>
 #include <QMainWindow>
 #include <QSettings>
@@ -17,7 +18,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    QString createEnvironment();
+    QString createEnvironment(const QString &location);
     void resetControls();
     QString getMusicName(const QString &filename);
 
@@ -25,11 +26,16 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private:
     Ui::MainWindow *m_ui;
     QSettings *m_settings;
+    QSettings *m_playlistSettings;
     Player m_player;
     QStringList m_playlist;
+    QString m_currentPlaylistName;
     QString m_currentMusic;
     qint8 m_hours;
     qint8 m_minutes;
@@ -50,6 +56,8 @@ private slots:
     void onOpenPlayListActionRequested();
     void onClosePlayListActionRequested();
     void onSavePlayListActionRequested();
+    void onRemovePlayListActionRequested();
+    void onOpenSettings();
     void onPlayButtonClicked();
     void onStopButtonClicked();
     void onAutoRepeatButtonClicked();

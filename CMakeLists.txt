@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(QBitMPlayer VERSION 2.2.0 LANGUAGES CXX)
+project(QBitMPlayer VERSION 2.3.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -26,6 +26,9 @@ set(PROJECT_SOURCES
     playlistchooser.hpp
     playlistchooser.cpp
     playlistchooser.ui
+    settings.hpp
+    settings.cpp
+    settings.ui
     ../${TS_FILES}
     ../resources/resources.qrc
 )

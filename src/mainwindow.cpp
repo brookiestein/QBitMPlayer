@@ -10,6 +10,7 @@
 
 #include "config.hpp"
 #include "playlistchooser.hpp"
+#include "settings.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -19,12 +20,32 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->setupUi(this);
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->durationLabel->setText("0/0");
+
+    m_settings = new QSettings(
+        createEnvironment(
+            QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + QDir::separator() + PROJECT_NAME
+        ),
+        QSettings::IniFormat,
+        this
+    );
+
+    m_playlistSettings = new QSettings(
+        createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
+        QSettings::IniFormat,
+        this);
+
+    m_settings->beginGroup("WindowSettings");
+    int width = m_settings->value("Width", geometry().width()).toInt();
+    int height = m_settings->value("Height", geometry().height()).toInt();
+    m_settings->endGroup();
+    setGeometry(x(), y(), width, height);
+
+    m_settings->beginGroup("AudioSettings");
     m_ui->volumeSlider->setRange(0, 100);
-    m_ui->volumeSlider->setValue(50);
+    m_ui->volumeSlider->setValue(m_settings->value("VolumeLevel", 50).toInt());
     m_ui->volumeSlider->setToolTip(tr("Current volume level: %1%").arg(m_ui->volumeSlider->value()));
     m_player.setVolume(m_ui->volumeSlider->value());
-
-    m_settings = new QSettings(createEnvironment(), QSettings::IniFormat);
+    m_settings->endGroup();
 
     connect(&m_player, &Player::error, this, &MainWindow::error);
     connect(&m_player, &Player::warning, this, &MainWindow::warning);
@@ -40,9 +61,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionOpenPlaylist, &QAction::triggered, this, &MainWindow::onOpenPlayListActionRequested);
     connect(m_ui->actionClosePlaylist, &QAction::triggered, this, &MainWindow::onClosePlayListActionRequested);
     connect(m_ui->actionSavePlaylist, &QAction::triggered, this, &MainWindow::onSavePlayListActionRequested);
+    connect(m_ui->actionRemovePlaylist, &QAction::triggered, this, &MainWindow::onRemovePlayListActionRequested);
     connect(m_ui->openPlaylistButton, &QPushButton::clicked, this, &MainWindow::onOpenPlayListActionRequested);
     connect(m_ui->closePlayListButton, &QPushButton::clicked, this, &MainWindow::onClosePlayListActionRequested);
     connect(m_ui->savePlaylistButton, &QPushButton::clicked, this, &MainWindow::onSavePlayListActionRequested);
+    connect(m_ui->removePlaylistButton, &QPushButton::clicked, this, &MainWindow::onRemovePlayListActionRequested);
+    connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::onOpenSettings);
     connect(m_ui->seekMusicSlider, &QSlider::sliderPressed, this, &MainWindow::onSeekSliderPressed);
     connect(m_ui->seekMusicSlider, &QSlider::sliderReleased, this, &MainWindow::onSeekSliderReleased);
     connect(m_ui->playButton, &QPushButton::clicked, this, &MainWindow::onPlayButtonClicked);
@@ -56,16 +80,33 @@ MainWindow::~MainWindow()
     delete m_ui;
 }
 
-QString MainWindow::createEnvironment()
+void MainWindow::closeEvent(QCloseEvent *event)
 {
-    auto appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    m_settings->beginGroup("WindowSettings");
+    if (m_settings->value("RememberWindowSize", false).toBool()) {
+        m_settings->setValue("Width", geometry().width());
+        m_settings->setValue("Height", geometry().height());
+    }
+    m_settings->endGroup();
+
+    m_settings->beginGroup("AudioSettings");
+    if (m_settings->value("RememberVolumeLevel", false).toBool()) {
+        m_settings->setValue("VolumeLevel", m_ui->volumeSlider->value());
+    }
+    m_settings->endGroup();
+
+    QMainWindow::closeEvent(event);
+}
+
+QString MainWindow::createEnvironment(const QString &location)
+{
     QDir d;
-    if (not d.exists(appDataLocation)) {
-        d.mkpath(appDataLocation);
+    if (not d.exists(location)) {
+        d.mkpath(location);
     }
 
     auto filename = QString("%1%2%3")
-                        .arg(appDataLocation, QDir::separator(), PROJECT_NAME".conf");
+                        .arg(location, QDir::separator(), PROJECT_NAME".conf");
     return filename;
 }
 
@@ -234,7 +275,7 @@ void MainWindow::onOpenFilesActionRequested()
 void MainWindow::onOpenPlayListActionRequested()
 {
     QEventLoop loop;
-    PlaylistChooser chooser(m_settings);
+    PlaylistChooser chooser(m_playlistSettings);
     connect(&chooser, &PlaylistChooser::closed, &loop, &QEventLoop::quit);
     chooser.show();
     loop.exec();
@@ -247,25 +288,26 @@ void MainWindow::onOpenPlayListActionRequested()
     /* First close the current playlist if there's one. */
     onClosePlayListActionRequested();
 
-    m_settings->beginGroup("Playlists");
-    m_settings->beginGroup(playlist);
+    m_playlistSettings->beginGroup("Playlists");
+    m_playlistSettings->beginGroup(playlist);
 
-    for (auto filename : m_settings->allKeys()) {
+    for (auto filename : m_playlistSettings->allKeys()) {
 #ifdef Q_OS_LINUX
         /* For some reason QSettings removes the first slash.
          * Test is required for a Windows machine */
         filename.prepend("/");
 #endif
         m_playlist << filename;
-        auto musicName = getMusicName(m_settings->value(filename).toString());
+        auto musicName = getMusicName(m_playlistSettings->value(filename).toString());
         m_ui->playlistWidget->addItem(musicName);
     }
 
     m_player.setPlayList(m_playlist);
     hasRepeated = false;
-    m_settings->endGroup(); /* Playlists */
-    m_settings->endGroup(); /* playlist */
+    m_playlistSettings->endGroup(); /* Playlists */
+    m_playlistSettings->endGroup(); /* playlist */
     m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlist));
+    m_currentPlaylistName = playlist;
 }
 
 void MainWindow::onClosePlayListActionRequested()
@@ -273,6 +315,7 @@ void MainWindow::onClosePlayListActionRequested()
     m_player.clearSource();
     m_playlist.clear();
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+    m_currentPlaylistName.clear();
     m_ui->playlistWidget->clear();
     m_ui->playingEdit->setText("");
     m_ui->playButton->setText(tr("Play"));
@@ -296,31 +339,68 @@ void MainWindow::onSavePlayListActionRequested()
         return;
     }
 
-    m_settings->beginGroup("Playlists");
-    if (m_settings->childGroups().contains(name, Qt::CaseInsensitive)) {
+    m_playlistSettings->beginGroup("Playlists");
+    if (m_playlistSettings->childGroups().contains(name, Qt::CaseInsensitive)) {
         auto reply = QMessageBox::question(this,
                                            tr("Oops"),
                                            tr("It seems that this playlist already exists. "
                                               "Would you like to replace it?")
                                            );
         if (reply != QMessageBox::Yes) {
-            m_settings->endGroup();
+            m_playlistSettings->endGroup();
             return;
         }
     }
 
-    m_settings->beginGroup(name);
+    m_playlistSettings->beginGroup(name);
     for (const auto &filename : m_playlist) {
-        m_settings->setValue(filename, getMusicName(filename));
+        m_playlistSettings->setValue(filename, getMusicName(filename));
     }
-    m_settings->endGroup(); /* name */
-    m_settings->endGroup(); /* Playlists */
+    m_playlistSettings->endGroup(); /* name */
+    m_playlistSettings->endGroup(); /* Playlists */
 
     m_ui->playlistLabel->setText(tr("Playlist: %1").arg(name));
+    m_currentPlaylistName = name;
 
     QMessageBox::information(this,
                              tr("Yay!"),
                              tr("Now you can play all the awesome music %1 has!").arg(name));
+}
+
+void MainWindow::onRemovePlayListActionRequested()
+{
+    QEventLoop loop;
+    PlaylistChooser chooser(m_playlistSettings);
+    connect(&chooser, &PlaylistChooser::closed, &loop, &QEventLoop::quit);
+    chooser.show();
+    loop.exec();
+
+    auto playlist = chooser.playlist();
+    if (playlist.isEmpty()) {
+        return;
+    }
+
+    m_playlistSettings->beginGroup("Playlists");
+    m_playlistSettings->remove(playlist);
+    m_playlistSettings->endGroup();
+
+    if (playlist == m_currentPlaylistName) {
+        onClosePlayListActionRequested();
+    }
+
+    QMessageBox::information(this,
+                             tr("Playlist Removed"),
+                             tr("The playlist %1 was successfully removed!").arg(playlist)
+                             );
+}
+
+void MainWindow::onOpenSettings()
+{
+    QEventLoop loop;
+    Settings settings;
+    connect(&settings, &Settings::closed, &loop, &QEventLoop::quit);
+    settings.show();
+    loop.exec();
 }
 
 void MainWindow::onPlayButtonClicked()

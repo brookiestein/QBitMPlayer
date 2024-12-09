@@ -62,9 +62,9 @@
         <location filename="../../src/mainwindow.ui" line="144"/>
         <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_mainwindow.h" line="211"/>
         <location filename="../../build/release/QBitMPlayer_autogen/include/ui_mainwindow.h" line="310"/>
-        <location filename="../../src/mainwindow.cpp" line="74"/>
-        <location filename="../../src/mainwindow.cpp" line="278"/>
-        <location filename="../../src/mainwindow.cpp" line="356"/>
+        <location filename="../../src/mainwindow.cpp" line="115"/>
+        <location filename="../../src/mainwindow.cpp" line="321"/>
+        <location filename="../../src/mainwindow.cpp" line="436"/>
         <source>Play</source>
         <translation>Reproducir</translation>
     </message>
@@ -79,7 +79,7 @@
         <location filename="../../src/mainwindow.ui" line="158"/>
         <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_mainwindow.h" line="213"/>
         <location filename="../../build/release/QBitMPlayer_autogen/include/ui_mainwindow.h" line="312"/>
-        <location filename="../../src/mainwindow.cpp" line="376"/>
+        <location filename="../../src/mainwindow.cpp" line="456"/>
         <source>Auto Repeat</source>
         <translation>Repetir</translation>
     </message>
@@ -161,37 +161,37 @@
         <translation>Abrir Archivo</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="24"/>
-        <location filename="../../src/mainwindow.cpp" line="397"/>
+        <location filename="../../src/mainwindow.cpp" line="46"/>
+        <location filename="../../src/mainwindow.cpp" line="477"/>
         <source>Current volume level: %1%</source>
         <translation>Nivel de volumen actual: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="92"/>
+        <location filename="../../src/mainwindow.cpp" line="133"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="97"/>
-        <location filename="../../src/mainwindow.cpp" line="287"/>
-        <location filename="../../src/mainwindow.cpp" line="335"/>
+        <location filename="../../src/mainwindow.cpp" line="138"/>
+        <location filename="../../src/mainwindow.cpp" line="330"/>
+        <location filename="../../src/mainwindow.cpp" line="415"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="205"/>
-        <location filename="../../src/mainwindow.cpp" line="342"/>
-        <location filename="../../src/mainwindow.cpp" line="345"/>
+        <location filename="../../src/mainwindow.cpp" line="246"/>
+        <location filename="../../src/mainwindow.cpp" line="422"/>
+        <location filename="../../src/mainwindow.cpp" line="425"/>
         <source>Pause</source>
         <translation>Pausar</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="211"/>
+        <location filename="../../src/mainwindow.cpp" line="252"/>
         <source>Audio files (*.aac *.avi *.mp3 *.wav)</source>
         <translation>Archivos de audio (*.acc *.avi *.mp3 *.wav)</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="214"/>
+        <location filename="../../src/mainwindow.cpp" line="255"/>
         <source>Open Audio Files</source>
         <translation>Abrir Archivos de Audio</translation>
     </message>
@@ -200,90 +200,100 @@
         <translation type="vanished">Archivos de audio (*.mp3)</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="20"/>
-        <location filename="../../src/mainwindow.cpp" line="275"/>
+        <location filename="../../src/mainwindow.cpp" line="21"/>
+        <location filename="../../src/mainwindow.cpp" line="317"/>
         <source>Playlist: Unnamed</source>
         <translation>Lista de Reproducción: Sin nombre</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="268"/>
-        <location filename="../../src/mainwindow.cpp" line="319"/>
+        <location filename="../../src/mainwindow.cpp" line="309"/>
+        <location filename="../../src/mainwindow.cpp" line="362"/>
         <source>Playlist: %1</source>
         <translation>Lista de Reproducción: %1</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="288"/>
+        <location filename="../../src/mainwindow.cpp" line="331"/>
         <source>You must first load some music files.</source>
         <translation>Primero debes cargar algunos archivos de música.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="293"/>
+        <location filename="../../src/mainwindow.cpp" line="336"/>
         <source>Give it a name</source>
         <translation>Dale un nombre</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="294"/>
+        <location filename="../../src/mainwindow.cpp" line="337"/>
         <source>How should we call this awesome playlist?</source>
         <translation>¿Cómo deberíamos llamar esta increíble lista de reproducción?</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="302"/>
+        <location filename="../../src/mainwindow.cpp" line="345"/>
         <source>Oops</source>
         <translation>Oops</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="303"/>
+        <location filename="../../src/mainwindow.cpp" line="346"/>
         <source>It seems that this playlist already exists. Would you like to replace it?</source>
         <translation>Parece que esta lista de reproducción ya existe. ¿Te gustaría reemplazarla?</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="322"/>
+        <location filename="../../src/mainwindow.cpp" line="366"/>
         <source>Yay!</source>
         <translation>¡Hurra!</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="323"/>
+        <location filename="../../src/mainwindow.cpp" line="367"/>
         <source>Now you can play all the awesome music %1 has!</source>
         <translation>Ahora puede reproducir todas las canciones increíbles que %1 tiene!</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="332"/>
-        <location filename="../../src/mainwindow.cpp" line="355"/>
+        <location filename="../../src/mainwindow.cpp" line="392"/>
+        <source>Playlist Removed</source>
+        <translation>Lista de Reproducción Eliminada</translation>
+    </message>
+    <message>
+        <location filename="../../src/mainwindow.cpp" line="393"/>
+        <source>The playlist %1 was successfully removed!</source>
+        <translation>¡La lista de reproducción %1 fue eliminada satisfactoriamente!</translation>
+    </message>
+    <message>
+        <location filename="../../src/mainwindow.cpp" line="412"/>
+        <location filename="../../src/mainwindow.cpp" line="435"/>
         <source>&amp;Play</source>
         <translation>&amp;Reproducir</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="336"/>
+        <location filename="../../src/mainwindow.cpp" line="416"/>
         <source>You must first load a music or choose one from the playlist.</source>
         <translation>Primero debes cargar una canción o elegir una de la lista de reproducción.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="343"/>
+        <location filename="../../src/mainwindow.cpp" line="423"/>
         <source>&amp;Pause</source>
         <translation>&amp;Pausar</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="348"/>
+        <location filename="../../src/mainwindow.cpp" line="428"/>
         <source>Continue</source>
         <translation>Continuar</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="367"/>
+        <location filename="../../src/mainwindow.cpp" line="447"/>
         <source>&amp;Auto Repeat</source>
         <translation>&amp;Repetir</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="369"/>
+        <location filename="../../src/mainwindow.cpp" line="449"/>
         <source>Auto Repeat Once</source>
         <translation>Repetir Una Vez</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="373"/>
+        <location filename="../../src/mainwindow.cpp" line="453"/>
         <source>Auto Repeat All</source>
         <translation>Repetir Todo</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="409"/>
+        <location filename="../../src/mainwindow.cpp" line="489"/>
         <source>About - %1</source>
         <translation>Acerca de - %1</translation>
     </message>
@@ -334,6 +344,107 @@
         <location filename="../../src/playlistchooser.cpp" line="49"/>
         <source>Playlist Name</source>
         <translation>Nombre de la Lista de Reproducción</translation>
+    </message>
+</context>
+<context>
+    <name>Settings</name>
+    <message>
+        <location filename="../../src/settings.ui" line="14"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="213"/>
+        <source>Settings</source>
+        <translation>Ajustes</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="80"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="215"/>
+        <source>Remember window size</source>
+        <translation>Recordar tamaño de la ventana</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="94"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="216"/>
+        <source>Width:</source>
+        <translation>Ancho:</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="109"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="217"/>
+        <source>Height:</source>
+        <translation>Altura:</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="176"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="219"/>
+        <source>Remember audio volume level</source>
+        <translation>Recordar nivel de volumen del audio</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="190"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="220"/>
+        <source>Volume level:</source>
+        <translation>Nivel de Volumen:</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="64"/>
+        <location filename="../../src/settings.ui" line="232"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="214"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="221"/>
+        <source>Apply</source>
+        <translation>Aplicar</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="43"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="218"/>
+        <location filename="../../src/settings.cpp" line="16"/>
+        <source>Window</source>
+        <translation>Ventana</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.ui" line="150"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="222"/>
+        <location filename="../../src/settings.cpp" line="17"/>
+        <source>Audio</source>
+        <translation>Audio</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="86"/>
+        <source>Unsaved changes</source>
+        <translation>Cambios sin guardar</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="87"/>
+        <source>There are unsaved changes. Would you like to save them?</source>
+        <translation>Hay cambios sin guardar. ¿Te gustaría guardarlos?</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="178"/>
+        <source>Width Required</source>
+        <translation>Ancho requerido</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="178"/>
+        <source>Width is required.</source>
+        <translation>El ancho es requerido.</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="184"/>
+        <source>Height Required</source>
+        <translation>Altura Requerida</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="184"/>
+        <source>Height is required.</source>
+        <translation>La altura es requerida.</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="196"/>
+        <source>Volume Level Required</source>
+        <translation>Nivel de Volumen Requerido</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="197"/>
+        <source>The volume level is required.</source>
+        <translation>El nivel de volumen es requerido.</translation>
     </message>
 </context>
 </TS>
