@@ -48,6 +48,7 @@ private slots:
     void onPlaylistItemDoubleClicked(QListWidgetItem *item);
     void onOpenFilesActionRequested();
     void onOpenPlayListActionRequested();
+    void onClosePlayListActionRequested();
     void onSavePlayListActionRequested();
     void onPlayButtonClicked();
     void onStopButtonClicked();

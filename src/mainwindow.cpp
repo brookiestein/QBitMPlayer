@@ -2,12 +2,14 @@
 #include "./ui_mainwindow.h"
 
 #include <QDir>
+#include <QEventLoop>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QStandardPaths>
 
 #include "config.hpp"
+#include "playlistchooser.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_canModifySlider(true)
 {
     m_ui->setupUi(this);
+    m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->durationLabel->setText("0/0");
     m_ui->volumeSlider->setRange(0, 100);
     m_ui->volumeSlider->setValue(50);
@@ -34,7 +37,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
     connect(m_ui->playlistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
     connect(m_ui->openFilesButton, &QPushButton::clicked, this, &MainWindow::onOpenFilesActionRequested);
+    connect(m_ui->actionOpenPlaylist, &QAction::triggered, this, &MainWindow::onOpenPlayListActionRequested);
+    connect(m_ui->actionClosePlaylist, &QAction::triggered, this, &MainWindow::onClosePlayListActionRequested);
     connect(m_ui->actionSavePlaylist, &QAction::triggered, this, &MainWindow::onSavePlayListActionRequested);
+    connect(m_ui->openPlaylistButton, &QPushButton::clicked, this, &MainWindow::onOpenPlayListActionRequested);
+    connect(m_ui->closePlayListButton, &QPushButton::clicked, this, &MainWindow::onClosePlayListActionRequested);
     connect(m_ui->savePlaylistButton, &QPushButton::clicked, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_ui->seekMusicSlider, &QSlider::sliderPressed, this, &MainWindow::onSeekSliderPressed);
     connect(m_ui->seekMusicSlider, &QSlider::sliderReleased, this, &MainWindow::onSeekSliderReleased);
@@ -226,7 +233,51 @@ void MainWindow::onOpenFilesActionRequested()
 
 void MainWindow::onOpenPlayListActionRequested()
 {
-    // TODO
+    QEventLoop loop;
+    PlaylistChooser chooser(m_settings);
+    connect(&chooser, &PlaylistChooser::closed, &loop, &QEventLoop::quit);
+    chooser.show();
+    loop.exec();
+
+    auto playlist = chooser.playlist();
+    if (playlist.isEmpty()) {
+        return;
+    }
+
+    /* First close the current playlist if there's one. */
+    onClosePlayListActionRequested();
+
+    m_settings->beginGroup("Playlists");
+    m_settings->beginGroup(playlist);
+
+    for (auto filename : m_settings->allKeys()) {
+#ifdef Q_OS_LINUX
+        /* For some reason QSettings removes the first slash.
+         * Test is required for a Windows machine */
+        filename.prepend("/");
+#endif
+        m_playlist << filename;
+        auto musicName = getMusicName(m_settings->value(filename).toString());
+        m_ui->playlistWidget->addItem(musicName);
+    }
+
+    m_player.setPlayList(m_playlist);
+    hasRepeated = false;
+    m_settings->endGroup(); /* Playlists */
+    m_settings->endGroup(); /* playlist */
+    m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlist));
+}
+
+void MainWindow::onClosePlayListActionRequested()
+{
+    m_player.clearSource();
+    m_playlist.clear();
+    m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+    m_ui->playlistWidget->clear();
+    m_ui->playingEdit->setText("");
+    m_ui->playButton->setText(tr("Play"));
+    m_ui->durationLabel->setText("0/0");
+    m_ui->seekMusicSlider->setValue(0);
 }
 
 void MainWindow::onSavePlayListActionRequested()
@@ -264,6 +315,8 @@ void MainWindow::onSavePlayListActionRequested()
     }
     m_settings->endGroup(); /* name */
     m_settings->endGroup(); /* Playlists */
+
+    m_ui->playlistLabel->setText(tr("Playlist: %1").arg(name));
 
     QMessageBox::information(this,
                              tr("Yay!"),

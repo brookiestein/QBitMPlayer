@@ -25,6 +25,7 @@ public slots:
     bool playNext();
     void stop();
     void seek(qint64 position);
+    void clearSource();
 
 private slots:
     void errorOcurred(QMediaPlayer::Error err, const QString &errorString);

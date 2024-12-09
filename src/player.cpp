@@ -115,6 +115,11 @@ void Player::seek(qint64 position)
     m_mediaPlayer->setPosition(position);
 }
 
+void Player::clearSource()
+{
+    m_mediaPlayer->setSource(QUrl());
+}
+
 void Player::errorOcurred(QMediaPlayer::Error err, const QString &errorString)
 {
     if (err == QMediaPlayer::NoError) {
