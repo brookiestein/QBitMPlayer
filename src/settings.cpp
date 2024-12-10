@@ -25,6 +25,8 @@ Settings::Settings(QWidget *parent)
     m_ui->widthEdit->setValidator(widthValidator);
     m_ui->heightEdit->setValidator(heightValidator);
     m_ui->volumeLevelEdit->setValidator(volumeValidator);
+    m_ui->applyWindowSettingsButton->setEnabled(false);
+    m_ui->applyAudioSettingsButton->setEnabled(false);
 
     m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
     m_settings->beginGroup("WindowSettings");
@@ -69,8 +71,8 @@ Settings::Settings(QWidget *parent)
         &Settings::onAlwaysMaximizedChecked
     );
 
-    connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::onTextChanged);
-    connect(m_ui->heightEdit, &QLineEdit::textChanged, this, &Settings::onTextChanged);
+    connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
+    connect(m_ui->heightEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->applyWindowSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
     connect(m_ui->applyAudioSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
 
@@ -81,7 +83,14 @@ Settings::Settings(QWidget *parent)
         &Settings::onRememberVolumeLevelChecked
     );
 
-    connect(m_ui->volumeLevelEdit, &QLineEdit::textChanged, this, &Settings::onTextChanged);
+    connect(m_ui->volumeLevelEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
+
+    m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] = m_ui->rememberWindowSizeCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
+
+    m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
+    m_initialFieldValues[m_ui->heightEdit] = m_ui->heightEdit->text();
+    m_initialFieldValues[m_ui->volumeLevelEdit] = m_ui->volumeLevelEdit->text();
 }
 
 Settings::~Settings()
@@ -118,6 +127,64 @@ QString Settings::createEnvironment()
     return configFile;
 }
 
+/* Works, but is it the best way to check for a change? */
+void Settings::checkForChange()
+{
+    bool changed {false};
+    if (m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] != m_ui->rememberWindowSizeCheckBox->isChecked()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] != m_ui->alwaysMaximizedCheckBox->isChecked()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] != m_ui->rememberVolumeLevelCheckBox->isChecked()) {
+        m_ui->applyAudioSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialFieldValues[m_ui->widthEdit] != m_ui->widthEdit->text()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialFieldValues[m_ui->heightEdit] != m_ui->heightEdit->text()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialFieldValues[m_ui->volumeLevelEdit] != m_ui->volumeLevelEdit->text()) {
+        m_ui->applyAudioSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+exit:
+    m_modified = changed;
+    auto title = windowTitle();
+    if (m_modified) {
+        if (not title.contains("*")) {
+            setWindowTitle(QString("%1*").arg(title));
+        }
+    } else {
+        if (title.contains("*")) {
+            title = title.mid(0, title.indexOf('*'));
+            setWindowTitle(title);
+        }
+
+        m_ui->applyWindowSettingsButton->setEnabled(false);
+        m_ui->applyAudioSettingsButton->setEnabled(false);
+    }
+}
+
 void Settings::onRememberWindowSizeChecked(Qt::CheckState state)
 {
     bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
@@ -135,10 +202,7 @@ void Settings::onRememberWindowSizeChecked(Qt::CheckState state)
         break;
     }
 
-    if (not m_modified) {
-        setWindowTitle(windowTitle() + "*");
-        m_modified = true;
-    }
+    checkForChange();
 }
 
 void Settings::onAlwaysMaximizedChecked(Qt::CheckState state)
@@ -159,19 +223,7 @@ void Settings::onAlwaysMaximizedChecked(Qt::CheckState state)
         break;
     }
 
-    if (not m_modified) {
-        setWindowTitle(windowTitle() + "*");
-        m_modified = true;
-    }
-}
-
-void Settings::onTextChanged(const QString &text)
-{
-    Q_UNUSED(text);
-    m_modified = true;
-    if (not windowTitle().contains('*')) {
-        setWindowTitle(windowTitle() + "*");
-    }
+    checkForChange();
 }
 
 void Settings::onRememberVolumeLevelChecked(Qt::CheckState state)
@@ -187,10 +239,7 @@ void Settings::onRememberVolumeLevelChecked(Qt::CheckState state)
         break;
     }
 
-    if (not m_modified) {
-        setWindowTitle(windowTitle() + "*");
-        m_modified = true;
-    }
+    checkForChange();
 }
 
 void Settings::applyChanges()

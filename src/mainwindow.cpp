@@ -268,6 +268,8 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
         m_playlistSettings->beginGroup(playlist);
         if (m_playlistSettings->contains(filename)) {
             m_playlistSettings->remove(filename);
+            m_playlistSettings->endGroup();
+            break;
         }
         m_playlistSettings->endGroup();
     }
@@ -277,7 +279,7 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
 void MainWindow::onOpenFilesActionRequested()
 {
     auto dir = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
-    QString filters {"Audio files ("};
+    QString filters = tr("Audio files (");
     QMediaFormat mediaFormat;
     auto supportedFormats = mediaFormat.supportedFileFormats(QMediaFormat::Decode);
     for (const auto &format : supportedFormats) {
