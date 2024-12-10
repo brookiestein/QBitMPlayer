@@ -20,25 +20,20 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->setupUi(this);
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->durationLabel->setText("0/0");
-
-    m_settings = new QSettings(
-        createEnvironment(
-            QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + QDir::separator() + PROJECT_NAME
-        ),
-        QSettings::IniFormat,
-        this
+    m_ui->autoRepeatButton->setToolTip(
+        tr("Neither current music nor current playlist repeats.")
     );
+
+    m_removeSongAction = new QAction(tr("Remove song from playlist"), this);
+    m_ui->playlistWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+    m_ui->playlistWidget->addAction(m_removeSongAction);
+
+    m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
 
     m_playlistSettings = new QSettings(
         createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
         QSettings::IniFormat,
         this);
-
-    m_settings->beginGroup("WindowSettings");
-    int width = m_settings->value("Width", geometry().width()).toInt();
-    int height = m_settings->value("Height", geometry().height()).toInt();
-    m_settings->endGroup();
-    setGeometry(x(), y(), width, height);
 
     m_settings->beginGroup("AudioSettings");
     m_ui->volumeSlider->setRange(0, 100);
@@ -52,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&m_player, &Player::durationChanged, this, &MainWindow::durationChanged);
     connect(&m_player, &Player::positionChanged, this, &MainWindow::positionChanged);
     connect(&m_player, &Player::finished, this, &MainWindow::finished);
+    connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onRemoveSongActionTriggered);
     connect(m_ui->actionOpenFiles, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionQuit, &QAction::triggered, this, &QApplication::quit, Qt::QueuedConnection);
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
@@ -86,6 +82,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (m_settings->value("RememberWindowSize", false).toBool()) {
         m_settings->setValue("Width", geometry().width());
         m_settings->setValue("Height", geometry().height());
+        m_settings->setValue("Maximized", isMaximized());
     }
     m_settings->endGroup();
 
@@ -246,10 +243,30 @@ void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
     m_ui->playButton->setText(tr("Pause"));
 }
 
+void MainWindow::onRemoveSongActionTriggered(bool triggered)
+{
+    auto selectedItems = m_ui->playlistWidget->selectedItems();
+    if (selectedItems.isEmpty()) {
+        return;
+    }
+
+    /* Remember that playlistWidget has its items added in the same order as m_playlist */
+    auto index = m_ui->playlistWidget->indexFromItem(selectedItems[0]).row();
+    auto *item = m_ui->playlistWidget->takeItem(index);
+    delete item;
+
+    auto filename = m_playlist[index];
+    m_playlist.removeAt(index);
+
+    if (filename == m_player.currentMusicFilename()) {
+        onClosePlayListActionRequested();
+    }
+}
+
 void MainWindow::onOpenFilesActionRequested()
 {
     auto dir = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
-    auto filters = tr("Audio files (*.aac *.avi *.mp3 *.wav)");
+    auto filters = tr("Audio files (*.aac *.avi *.mp3 *.opus *.wav)");
 
     auto playlist = QFileDialog::getOpenFileNames(this,
                                                tr("Open Audio Files"),
@@ -447,13 +464,16 @@ void MainWindow::onAutoRepeatButtonClicked()
     if (text == tr("&Auto Repeat")) {
         m_autoRepeatType = AUTOREPEAT_TYPE::ONCE;
         snder->setText(tr("Auto Repeat Once"));
+        snder->setToolTip(tr("Current music will repeat just once."));
         hasRepeated = false;
     } else if (text.contains("Once")) {
         m_autoRepeatType = AUTOREPEAT_TYPE::ALL;
         snder->setText(tr("Auto Repeat All"));
+        snder->setToolTip(tr("Current playlist will repeat forever."));
     } else {
         m_autoRepeatType = AUTOREPEAT_TYPE::DONT_AUTOREPEAT;
         snder->setText(tr("Auto Repeat"));
+        snder->setToolTip(tr("Neither current music nor current playlist repeats."));
     }
 }
 

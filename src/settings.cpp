@@ -16,13 +16,14 @@ Settings::Settings(QWidget *parent)
     m_ui->tabWidget->setTabText(0, tr("Window"));
     m_ui->tabWidget->setTabText(1, tr("Audio"));
     m_ui->tabWidget->setCurrentIndex(0);
+    setWindowTitle(tr("%1 - Settings").arg(PROJECT_NAME));
 
-    auto *sizeValidator = new QIntValidator(this);
-    auto *volumeValidator = new QIntValidator(this);
-    sizeValidator->setBottom(0);
-    volumeValidator->setRange(0, 100);
-    m_ui->widthEdit->setValidator(sizeValidator);
-    m_ui->heightEdit->setValidator(sizeValidator);
+    auto *widthValidator = new QIntValidator(0, screen()->geometry().width(), this);
+    auto *heightValidator = new QIntValidator(0, screen()->geometry().height(), this);
+    auto *volumeValidator = new QIntValidator(0, 100, this);
+
+    m_ui->widthEdit->setValidator(widthValidator);
+    m_ui->heightEdit->setValidator(heightValidator);
     m_ui->volumeLevelEdit->setValidator(volumeValidator);
 
     m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
@@ -30,14 +31,16 @@ Settings::Settings(QWidget *parent)
 
     auto state = m_settings->value("RememberWindowSize", false).toBool() ? Qt::Checked : Qt::Unchecked;
     m_ui->rememberWindowSizeCheckBox->setCheckState(state);
+    state = m_settings->value("AlwaysMaximized", false).toBool() ? Qt::Checked : Qt::Unchecked;
+    m_ui->alwaysMaximizedCheckBox->setCheckState(state);
 
     int width = m_settings->value("Width", geometry().width()).toInt();
     int height = m_settings->value("Height", geometry().height()).toInt();
+    m_settings->endGroup();
 
     m_ui->widthEdit->setText(QString::number(width));
     m_ui->heightEdit->setText(QString::number(height));
 
-    m_settings->endGroup();
     m_settings->beginGroup("AudioSettings");
     state = m_settings->value("RememberVolumeLevel", false).toBool() ? Qt::Checked : Qt::Unchecked;
     m_ui->rememberVolumeLevelCheckBox->setCheckState(state);
@@ -57,6 +60,13 @@ Settings::Settings(QWidget *parent)
         &QCheckBox::checkStateChanged,
         this,
         &Settings::onRememberWindowSizeChecked
+    );
+
+    connect(
+        m_ui->alwaysMaximizedCheckBox,
+        &QCheckBox::checkStateChanged,
+        this,
+        &Settings::onAlwaysMaximizedChecked
     );
 
     connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::onTextChanged);
@@ -110,14 +120,40 @@ QString Settings::createEnvironment()
 
 void Settings::onRememberWindowSizeChecked(Qt::CheckState state)
 {
+    bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
     switch (state)
     {
     case Qt::Unchecked:
-        m_ui->widthEdit->setEnabled(true);
-        m_ui->heightEdit->setEnabled(true);
+        m_ui->widthEdit->setEnabled(not alwaysMaximized);
+        m_ui->heightEdit->setEnabled(not alwaysMaximized);
         break;
     case Qt::PartiallyChecked: [[fallthrough]];
     case Qt::Checked:
+        m_ui->alwaysMaximizedCheckBox->setChecked(false);
+        m_ui->widthEdit->setEnabled(false);
+        m_ui->heightEdit->setEnabled(false);
+        break;
+    }
+
+    if (not m_modified) {
+        setWindowTitle(windowTitle() + "*");
+        m_modified = true;
+    }
+}
+
+void Settings::onAlwaysMaximizedChecked(Qt::CheckState state)
+{
+    switch (state)
+    {
+    case Qt::Unchecked:
+        if (not m_ui->rememberWindowSizeCheckBox->isChecked()) {
+            m_ui->widthEdit->setEnabled(true);
+            m_ui->heightEdit->setEnabled(true);
+        }
+        break;
+    case Qt::PartiallyChecked: [[fallthrough]];
+    case Qt::Checked:
+        m_ui->rememberWindowSizeCheckBox->setChecked(false);
         m_ui->widthEdit->setEnabled(false);
         m_ui->heightEdit->setEnabled(false);
         break;
@@ -165,6 +201,7 @@ void Settings::applyChanges()
 
     m_settings->beginGroup("WindowSettings");
     bool rememberWindowSize = m_ui->rememberWindowSizeCheckBox->isChecked();
+    bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
     bool rememberVolumeLevel = m_ui->rememberVolumeLevelCheckBox->isChecked();
     int width {-1};
     int height {-1};
@@ -187,11 +224,24 @@ void Settings::applyChanges()
 
         width = widthText.toInt();
         height = heightText.toInt();
+
+        if (width > screen()->geometry().width()) {
+            m_settings->endGroup();
+            QMessageBox::warning(this, tr("Too High"), tr("Width is too high."));
+            return;
+        }
+
+        if (height > screen()->geometry().height()) {
+            m_settings->endGroup();
+            QMessageBox::warning(this, tr("Too High"), tr("Height is too high."));
+            return;
+        }
     }
 
     if (not rememberVolumeLevel) {
         const auto &volumeLevelText = m_ui->volumeLevelEdit->text();
         if (volumeLevelText.isEmpty()) {
+            m_settings->endGroup();
             QMessageBox::warning(this,
                                  tr("Volume Level Required"),
                                  tr("The volume level is required.")
@@ -200,20 +250,26 @@ void Settings::applyChanges()
         }
 
         volumeLevel = volumeLevelText.toInt();
+        if (volumeLevel > 100) {
+            m_settings->endGroup();
+            QMessageBox::warning(this, tr("Too High"), tr("Volume level is too high."));
+            return;
+        }
     }
 
+    m_settings->setValue("RememberWindowSize", rememberWindowSize);
+    m_settings->setValue("AlwaysMaximized", alwaysMaximized);
     if (width >= 0)
         m_settings->setValue("Width", width);
     if (height >= 0)
         m_settings->setValue("Height", height);
-
-    m_settings->setValue("RememberWindowSize", rememberWindowSize);
     m_settings->endGroup();
+
     m_settings->beginGroup("AudioSettings");
     m_settings->setValue("RememberVolumeLevel", rememberVolumeLevel);
-
     if (volumeLevel >= 0)
         m_settings->setValue("VolumeLevel", volumeLevel);
+    m_settings->endGroup();
 
     setWindowTitle(windowTitle().mid(0, windowTitle().indexOf('*')));
     m_modified = false;

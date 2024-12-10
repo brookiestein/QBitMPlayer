@@ -8,6 +8,7 @@ Player::Player(const QStringList &playlist, QObject *parent)
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_playlist(playlist)
     , m_currentMusicIndex(-1)
+    , m_autoplay(false)
 {
     m_mediaPlayer->setAudioOutput(m_audioOutput);
 
@@ -24,6 +25,7 @@ bool Player::hasNext()
 void Player::setCurrent(const QString &musicFile)
 {
     m_mediaPlayer->setSource(QUrl::fromLocalFile(musicFile));
+    m_currentMusicFilename = musicFile;
     if (m_playlist.contains(musicFile)) {
         m_currentMusicIndex = m_playlist.indexOf(musicFile);
     }
@@ -38,6 +40,18 @@ void Player::setCurrent(qint64 index)
 
     m_currentMusicIndex = index;
     m_mediaPlayer->setSource(QUrl::fromLocalFile(m_playlist[index]));
+    m_currentMusicFilename = m_playlist[index];
+    qDebug() << m_currentMusicFilename;
+}
+
+void Player::setAutoPlay(bool autoPlay)
+{
+    m_autoplay = autoPlay;
+}
+
+const QString &Player::currentMusicFilename() const
+{
+    return m_currentMusicFilename;
 }
 
 void Player::setPlayList(const QStringList &playlist)
@@ -137,7 +151,11 @@ void Player::onDurationChanged(qint64 duration)
 void Player::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::EndOfMedia) {
-        emit finished();
+        if (m_autoplay) {
+            playNext();
+        } else {
+            emit finished();
+        }
     }
 }
 

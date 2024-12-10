@@ -16,6 +16,9 @@ public:
     explicit Player(const QStringList &playlist = QStringList(), QObject *parent = nullptr);
     void setPlayList(const QStringList &playlist);
     void setCurrent(qint64 index);
+    /* Useful when in the command line. */
+    void setAutoPlay(bool autoPlay);
+    const QString &currentMusicFilename() const;
 
 public slots:
     void setVolume(float volume);
@@ -43,8 +46,10 @@ signals:
 private:
     QStringList m_playlist;
     qint64 m_currentMusicIndex;
+    QString m_currentMusicFilename;
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
+    bool m_autoplay;
 };
 
 #endif // PLAYER_HPP

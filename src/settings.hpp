@@ -24,6 +24,7 @@ protected:
 
 private slots:
     void onRememberWindowSizeChecked(Qt::CheckState state);
+    void onAlwaysMaximizedChecked(Qt::CheckState state);
     void onTextChanged(const QString &text);
     void onRememberVolumeLevelChecked(Qt::CheckState state);
     void applyChanges();
