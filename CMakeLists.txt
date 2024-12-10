@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(QBitMPlayer
-    VERSION 2.4.0
+    VERSION 2.4.1
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )

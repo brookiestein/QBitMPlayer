@@ -5,6 +5,7 @@
 #include <QEventLoop>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QMediaFormat>
 #include <QMessageBox>
 #include <QStandardPaths>
 
@@ -261,12 +262,71 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
     if (filename == m_player.currentMusicFilename()) {
         onClosePlayListActionRequested();
     }
+
+    m_playlistSettings->beginGroup("Playlists");
+    for (const auto &playlist : m_playlistSettings->childGroups()) {
+        m_playlistSettings->beginGroup(playlist);
+        if (m_playlistSettings->contains(filename)) {
+            m_playlistSettings->remove(filename);
+        }
+        m_playlistSettings->endGroup();
+    }
+    m_playlistSettings->endGroup();
 }
 
 void MainWindow::onOpenFilesActionRequested()
 {
     auto dir = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
-    auto filters = tr("Audio files (*.aac *.avi *.mp3 *.opus *.wav)");
+    QString filters {"Audio files ("};
+    QMediaFormat mediaFormat;
+    auto supportedFormats = mediaFormat.supportedFileFormats(QMediaFormat::Decode);
+    for (const auto &format : supportedFormats) {
+        switch (format)
+        {
+        case QMediaFormat::UnspecifiedFormat:
+            break;
+        case QMediaFormat::WMV:
+            filters += "*.wmv ";
+            break;
+        case QMediaFormat::AVI:
+            filters += "*.avi ";
+            break;
+        case QMediaFormat::Matroska:
+            filters += "*.mkv *.mk3d *.mka *.mks ";
+            break;
+        case QMediaFormat::MPEG4:
+            filters += "*.mp4 ";
+            break;
+        case QMediaFormat::Ogg:
+            filters += "*.ogg *.ogv *.oga *.ogx *.ogm *.spx *.opus ";
+            break;
+        case QMediaFormat::QuickTime:
+            break;
+        case QMediaFormat::WebM:
+            filters += "*.webm ";
+            break;
+        case QMediaFormat::Mpeg4Audio:
+            filters += "*.m4a ";
+            break;
+        case QMediaFormat::AAC:
+            filters += "*.aac *.3gp ";
+            break;
+        case QMediaFormat::WMA:
+            filters += "*.wma ";
+            break;
+        case QMediaFormat::MP3:
+            filters += "*.mp3 ";
+            break;
+        case QMediaFormat::FLAC:
+            filters += "*.flac ";
+            break;
+        case QMediaFormat::Wave:
+            filters += "*.wav *.wave ";
+            break;
+        }
+    }
+
+    filters = QString("%1)").arg(filters.trimmed());
 
     auto playlist = QFileDialog::getOpenFileNames(this,
                                                tr("Open Audio Files"),
