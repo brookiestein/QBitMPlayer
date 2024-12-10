@@ -5,12 +5,14 @@
 #include <QDir>
 #include <QIntValidator>
 #include <QMessageBox>
+#include <QProcess>
 #include <QStandardPaths>
 
 Settings::Settings(QWidget *parent)
     : QWidget(parent)
     , m_ui(new Ui::Settings)
     , m_modified(false)
+    , m_changesApplied(false)
 {
     m_ui->setupUi(this);
     m_ui->tabWidget->setTabText(0, tr("Window"));
@@ -57,6 +59,10 @@ Settings::Settings(QWidget *parent)
     m_ui->widthEdit->setEnabled(not checked);
     m_ui->heightEdit->setEnabled(not checked);
 
+    auto stateText = tr("Changes will apply on reboot.");
+    m_ui->windowStateLabel->setText(stateText);
+    m_ui->audioStateLabel->setText(stateText);
+
     connect(
         m_ui->rememberWindowSizeCheckBox,
         &QCheckBox::checkStateChanged,
@@ -85,12 +91,7 @@ Settings::Settings(QWidget *parent)
 
     connect(m_ui->volumeLevelEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
 
-    m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] = m_ui->rememberWindowSizeCheckBox->isChecked();
-    m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
-
-    m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
-    m_initialFieldValues[m_ui->heightEdit] = m_ui->heightEdit->text();
-    m_initialFieldValues[m_ui->volumeLevelEdit] = m_ui->volumeLevelEdit->text();
+    setInitialValues();
 }
 
 Settings::~Settings()
@@ -106,6 +107,22 @@ void Settings::closeEvent(QCloseEvent *event)
                                            tr("There are unsaved changes. Would you like to save them?"));
         if (reply == QMessageBox::Yes) {
             applyChanges();
+        }
+    }
+
+    if (m_changesApplied) {
+        auto reply = QMessageBox::question(this,
+                                           tr("Settings Saved"),
+                                           tr("New settings have been saved. "
+                                              "Would you like to reboot to apply them?"));
+        if (reply != QMessageBox::Yes) {
+            QMessageBox::information(this,
+                                     tr("Information"),
+                                     tr("Changes will take effect on next start."));
+        } else {
+            auto *app = QApplication::instance();
+            app->quit();
+            QProcess::startDetached(app->arguments()[0], app->arguments().mid(1));
         }
     }
 
@@ -125,6 +142,17 @@ QString Settings::createEnvironment()
 
     auto configFile = QString("%1%2%3").arg(configLocation, QDir::separator(), PROJECT_NAME".conf");
     return configFile;
+}
+
+void Settings::setInitialValues()
+{
+    m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] = m_ui->rememberWindowSizeCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] = m_ui->alwaysMaximizedCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
+
+    m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
+    m_initialFieldValues[m_ui->heightEdit] = m_ui->heightEdit->text();
+    m_initialFieldValues[m_ui->volumeLevelEdit] = m_ui->volumeLevelEdit->text();
 }
 
 /* Works, but is it the best way to check for a change? */
@@ -321,5 +349,9 @@ void Settings::applyChanges()
     m_settings->endGroup();
 
     setWindowTitle(windowTitle().mid(0, windowTitle().indexOf('*')));
+    setInitialValues();
     m_modified = false;
+    m_changesApplied = true;
+    m_ui->applyWindowSettingsButton->setEnabled(m_modified);
+    m_ui->applyAudioSettingsButton->setEnabled(m_modified);
 }

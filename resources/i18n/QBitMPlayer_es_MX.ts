@@ -401,143 +401,168 @@
     <name>Settings</name>
     <message>
         <location filename="../../src/settings.ui" line="14"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="231"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="231"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="244"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="244"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="82"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="233"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="233"/>
+        <location filename="../../src/settings.ui" line="94"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="247"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="247"/>
         <source>Remember window size</source>
         <translation>Recordar tamaño de la ventana</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="94"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="234"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="234"/>
+        <location filename="../../src/settings.ui" line="106"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="248"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="248"/>
         <source>Always maximized</source>
         <translation>Siempre maximizada</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="123"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="235"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="235"/>
+        <location filename="../../src/settings.ui" line="135"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="249"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="249"/>
         <source>Width:</source>
         <translation>Ancho:</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="138"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="236"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="236"/>
+        <location filename="../../src/settings.ui" line="150"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="250"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="250"/>
         <source>Height:</source>
         <translation>Altura:</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="205"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="238"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="238"/>
+        <location filename="../../src/settings.ui" line="253"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="254"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="254"/>
         <source>Remember audio volume level</source>
         <translation>Recordar nivel de volumen del audio</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="219"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="239"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="239"/>
+        <location filename="../../src/settings.ui" line="267"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="255"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="255"/>
         <source>Volume level:</source>
         <translation>Nivel de Volumen:</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="64"/>
-        <location filename="../../src/settings.ui" line="261"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="232"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="240"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="232"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="240"/>
+        <location filename="../../src/settings.ui" line="76"/>
+        <location filename="../../src/settings.ui" line="224"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="246"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="253"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="246"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="253"/>
         <source>Apply</source>
         <translation>Aplicar</translation>
     </message>
     <message>
         <location filename="../../src/settings.ui" line="43"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="237"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="237"/>
-        <location filename="../../src/settings.cpp" line="16"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="251"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="251"/>
+        <location filename="../../src/settings.cpp" line="18"/>
         <source>Window</source>
         <translation>Ventana</translation>
     </message>
     <message>
-        <location filename="../../src/settings.ui" line="179"/>
-        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="241"/>
-        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="241"/>
-        <location filename="../../src/settings.cpp" line="17"/>
+        <location filename="../../src/settings.ui" line="191"/>
+        <location filename="../../build/Desktop-Debug/QBitMPlayer_autogen/include/ui_settings.h" line="256"/>
+        <location filename="../../build/release/QBitMPlayer_autogen/include/ui_settings.h" line="256"/>
+        <location filename="../../src/settings.cpp" line="19"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="19"/>
+        <location filename="../../src/settings.cpp" line="21"/>
         <source>%1 - Settings</source>
         <translation>%1 - Ajustes</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="105"/>
+        <location filename="../../src/settings.cpp" line="62"/>
+        <source>Changes will apply on reboot.</source>
+        <translation>Los cambios se aplicarán al reiniciar.</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="106"/>
         <source>Unsaved changes</source>
         <translation>Cambios sin guardar</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="106"/>
+        <location filename="../../src/settings.cpp" line="107"/>
         <source>There are unsaved changes. Would you like to save them?</source>
         <translation>Hay cambios sin guardar. ¿Te gustaría guardarlos?</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="264"/>
+        <location filename="../../src/settings.cpp" line="115"/>
+        <source>Settings Saved</source>
+        <translation>Ajustes Guardados</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="116"/>
+        <source>New settings have been saved. Would you like to reboot to apply them?</source>
+        <translation>Los nuevos ajustes han sido guardados. ¿Te gustaría reiniciar la aplicación para aplicarlos?</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="120"/>
+        <source>Information</source>
+        <translation>Información</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="121"/>
+        <source>Changes will take effect on next start.</source>
+        <translation>Los cambios surtirán efecto la próxima vez que inicies la aplicación.</translation>
+    </message>
+    <message>
+        <location filename="../../src/settings.cpp" line="292"/>
         <source>Width Required</source>
         <translation>Ancho requerido</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="264"/>
+        <location filename="../../src/settings.cpp" line="292"/>
         <source>Width is required.</source>
         <translation>El ancho es requerido.</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="270"/>
+        <location filename="../../src/settings.cpp" line="298"/>
         <source>Height Required</source>
         <translation>Altura Requerida</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="270"/>
+        <location filename="../../src/settings.cpp" line="298"/>
         <source>Height is required.</source>
         <translation>La altura es requerida.</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="279"/>
-        <location filename="../../src/settings.cpp" line="285"/>
-        <location filename="../../src/settings.cpp" line="304"/>
+        <location filename="../../src/settings.cpp" line="307"/>
+        <location filename="../../src/settings.cpp" line="313"/>
+        <location filename="../../src/settings.cpp" line="332"/>
         <source>Too High</source>
         <translation>Demasiado alto</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="279"/>
+        <location filename="../../src/settings.cpp" line="307"/>
         <source>Width is too high.</source>
         <translation>La anchura es demasiada alta.</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="285"/>
+        <location filename="../../src/settings.cpp" line="313"/>
         <source>Height is too high.</source>
         <translation>La altura es demasiada alta.</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="295"/>
+        <location filename="../../src/settings.cpp" line="323"/>
         <source>Volume Level Required</source>
         <translation>Nivel de Volumen Requerido</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="296"/>
+        <location filename="../../src/settings.cpp" line="324"/>
         <source>The volume level is required.</source>
         <translation>El nivel de volumen es requerido.</translation>
     </message>
     <message>
-        <location filename="../../src/settings.cpp" line="304"/>
+        <location filename="../../src/settings.cpp" line="332"/>
         <source>Volume level is too high.</source>
         <translation>El volumen es demasiado alto.</translation>
     </message>

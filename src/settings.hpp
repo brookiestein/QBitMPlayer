@@ -16,6 +16,7 @@ class Settings : public QWidget
     Q_OBJECT
 
     QString createEnvironment();
+    void setInitialValues();
 
 public:
     explicit Settings(QWidget *parent = nullptr);
@@ -38,6 +39,7 @@ private:
     Ui::Settings *m_ui;
     QSettings *m_settings;
     bool m_modified;
+    bool m_changesApplied;
     /* In order to check whether has had a change. */
     QMap<const QCheckBox *, bool> m_initialCheckBoxesValues;
     QMap<const QLineEdit *, QString> m_initialFieldValues;
