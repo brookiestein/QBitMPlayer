@@ -8,6 +8,7 @@
 #include <QMediaFormat>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QShortcut>
 
 #include "config.hpp"
 #include "playlistchooser.hpp"
@@ -15,18 +16,40 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , m_ui(new Ui::MainWindow)
-    , m_canModifySlider(true)
+    , m_ui {new Ui::MainWindow}
+    , m_canModifySlider {true}
+    , m_quitShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_Q), this)}
+    , m_openFilesShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_O), this)}
+    , m_openPlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Modifier::SHIFT | Qt::Key_O), this)}
+    , m_closePlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_C), this)}
+    , m_savePlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_S), this)}
+    , m_removePlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_R), this)}
+    , m_settingsShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Modifier::SHIFT | Qt::Key_S), this)}
+    , m_playShortcut {new QShortcut(QKeySequence(Qt::Key_P), this)}
+    , m_playShortcut2 {new QShortcut(QKeySequence(Qt::Key_Space), this)}
+    , m_stopShortcut {new QShortcut(QKeySequence(Qt::Key_Escape), this)}
+    , m_previousShortcut {new QShortcut(QKeySequence(Qt::Key_Left), this)}
+    , m_nextShortcut {new QShortcut(QKeySequence(Qt::Key_Right), this)}
+    , m_autorepeatShortcut {new QShortcut(QKeySequence(Qt::Key_R), this)}
+    , m_increaseVolumeBy5Shortcut {new QShortcut(QKeySequence(Qt::Key_Up), this)}
+    , m_increaseVolumeBy10Shortcut {new QShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_Up), this)}
+    , m_decreaseVolumeBy5Shortcut {new QShortcut(QKeySequence(Qt::Key_Down), this)}
+    , m_decreaseVolumeBy10Shortcut {new QShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_Down), this)}
 {
     m_ui->setupUi(this);
+
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->durationLabel->setText("0/0");
+    m_ui->autoRepeatButton->setText("");
     m_ui->autoRepeatButton->setToolTip(
         tr("Neither current music nor current playlist repeats.")
     );
+    m_ui->volumeIconButton->setToolTip(tr("Click to increase volume by 25%."));
 
+    m_addSongToPlaylist = new QAction(tr("Add song to playlist"), this);
     m_removeSongAction = new QAction(tr("Remove song from playlist"), this);
     m_ui->playlistWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+    m_ui->playlistWidget->addAction(m_addSongToPlaylist);
     m_ui->playlistWidget->addAction(m_removeSongAction);
 
     m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
@@ -36,11 +59,26 @@ MainWindow::MainWindow(QWidget *parent)
         QSettings::IniFormat,
         this);
 
+    m_settings->beginGroup("WindowSettings");
+    if (m_settings->value("Centered", false).toBool()) {
+        if (not m_settings->value("AlwaysMaximized", false).toBool()) {
+            move(screen()->geometry().center() - frameGeometry().center());
+        }
+    }
+
     m_settings->beginGroup("AudioSettings");
     m_ui->volumeSlider->setRange(0, 100);
     m_ui->volumeSlider->setValue(m_settings->value("VolumeLevel", 50).toInt());
     m_ui->volumeSlider->setToolTip(tr("Current volume level: %1%").arg(m_ui->volumeSlider->value()));
     m_player.setVolume(m_ui->volumeSlider->value());
+    setVolumeIcon();
+    m_settings->endGroup();
+
+    m_settings->beginGroup("PlaylistSettings");
+    auto playlistName = m_settings->value("DefaultPlaylist", "").toString();
+    if (not playlistName.isEmpty() and playlistName != "None") {
+        loadPlaylist(playlistName);
+    }
     m_settings->endGroup();
 
     connect(&m_player, &Player::error, this, &MainWindow::error);
@@ -48,9 +86,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&m_player, &Player::durationChanged, this, &MainWindow::durationChanged);
     connect(&m_player, &Player::positionChanged, this, &MainWindow::positionChanged);
     connect(&m_player, &Player::finished, this, &MainWindow::finished);
+    connect(m_addSongToPlaylist, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onRemoveSongActionTriggered);
     connect(m_ui->actionOpenFiles, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
-    connect(m_ui->actionQuit, &QAction::triggered, this, &QApplication::quit, Qt::QueuedConnection);
+    connect(m_ui->actionQuit, &QAction::triggered, this, &MainWindow::onQuit);
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
     connect(m_ui->playlistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
@@ -67,9 +106,31 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->seekMusicSlider, &QSlider::sliderPressed, this, &MainWindow::onSeekSliderPressed);
     connect(m_ui->seekMusicSlider, &QSlider::sliderReleased, this, &MainWindow::onSeekSliderReleased);
     connect(m_ui->playButton, &QPushButton::clicked, this, &MainWindow::onPlayButtonClicked);
-    connect(m_ui->stopButton, &QPushButton::clicked, this, &MainWindow::onStopButtonClicked);
+    connect(m_ui->stopButton, &QPushButton::clicked, this, &MainWindow::onStopActionRequested);
+    connect(m_ui->previousButton, &QPushButton::clicked, this, &MainWindow::onPreviousButtonClicked);
+    connect(m_ui->nextButton, &QPushButton::clicked, this, &MainWindow::onNextButtonClicked);
     connect(m_ui->autoRepeatButton, &QPushButton::clicked, this, &MainWindow::onAutoRepeatButtonClicked);
     connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeSliderValueChanged);
+    connect(m_ui->volumeIconButton, &QPushButton::clicked, this, &MainWindow::onVolumeIconButtonClicked);
+
+    /* Keyboard shortcuts */
+    connect(m_quitShortcut, &QShortcut::activated, this, &MainWindow::onQuit);
+    connect(m_openFilesShortcut, &QShortcut::activated, this, &MainWindow::onOpenFilesActionRequested);
+    connect(m_openPlaylistShortcut, &QShortcut::activated, this, &MainWindow::onOpenPlayListActionRequested);
+    connect(m_closePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onClosePlayListActionRequested);
+    connect(m_savePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onSavePlayListActionRequested);
+    connect(m_removePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onRemovePlayListActionRequested);
+    connect(m_settingsShortcut, &QShortcut::activated, this, &MainWindow::onOpenSettings);
+    connect(m_playShortcut, &QShortcut::activated, this, &MainWindow::playShortcutHelper);
+    connect(m_playShortcut2, &QShortcut::activated, this, &MainWindow::playShortcutHelper);
+    connect(m_stopShortcut, &QShortcut::activated, this, &MainWindow::onStopActionRequested);
+    connect(m_previousShortcut, &QShortcut::activated, this, &MainWindow::onPreviousButtonClicked);
+    connect(m_nextShortcut, &QShortcut::activated, this, &MainWindow::onNextButtonClicked);
+    connect(m_autorepeatShortcut, &QShortcut::activated, this, &MainWindow::onAutoRepeatButtonClicked);
+    connect(m_increaseVolumeBy5Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeIncrease);
+    connect(m_increaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeIncrease);
+    connect(m_decreaseVolumeBy5Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
+    connect(m_decreaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
 }
 
 MainWindow::~MainWindow()
@@ -96,6 +157,20 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
+void MainWindow::onQuit()
+{
+    auto reply = QMessageBox::question(
+        this,
+        tr("Quit"),
+        tr("Are you sure you want to exit?")
+    );
+
+    if (reply == QMessageBox::Yes) {
+        auto *app = QApplication::instance();
+        app->quit();
+    }
+}
+
 QString MainWindow::createEnvironment(const QString &location)
 {
     QDir d;
@@ -111,6 +186,7 @@ QString MainWindow::createEnvironment(const QString &location)
 void MainWindow::resetControls()
 {
     m_ui->playButton->setText(tr("Play"));
+    m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     m_ui->seekMusicSlider->setValue(0);
     m_ui->durationLabel->setText(QString("0/%1:%2:%3")
                                      .arg(QString::number(m_hours),
@@ -119,7 +195,7 @@ void MainWindow::resetControls()
                                  );
 }
 
-QString MainWindow::getMusicName(const QString &filename)
+QString MainWindow::musicName(const QString &filename)
 {
     auto musicName = filename.mid(filename.lastIndexOf('/') + 1, filename.size());
     musicName = musicName.mid(0, musicName.lastIndexOf('.'));
@@ -206,25 +282,32 @@ void MainWindow::positionChanged(qint64 position)
 
 void MainWindow::finished()
 {
-    switch (m_autoRepeatType)
+    switch (m_autorepeat)
     {
-    case AUTOREPEAT_TYPE::DONT_AUTOREPEAT:
-        resetControls();
-        break;
-    case AUTOREPEAT_TYPE::ONCE:
-        if (hasRepeated) {
-            resetControls();
+    case AUTOREPEAT::NONE:
+        if (m_player.playNext()) {
+            int index = m_ui->playlistWidget->currentIndex().row();
+            m_ui->playlistWidget->setCurrentRow(index + 1);
         } else {
-            m_player.play();
-            hasRepeated = true;
+            resetControls();
         }
         break;
-    case AUTOREPEAT_TYPE::ALL:
-        /* This call will play next music if there's any, if not returns false,
-         * allowing us to reset the widgets. */
-        if (not m_player.playNext()) {
-            /* There's just one music in the playlist, so repeat this one. */
-            m_player.playPrevious();
+    case AUTOREPEAT::ONE:
+        m_player.play();
+        break;
+    case AUTOREPEAT::ALL:
+        if (m_playlist.size() == 1) {
+            m_player.play();
+        } else {
+            if (m_player.playNext()) {
+                int index = m_ui->playlistWidget->currentIndex().row();
+                m_ui->playlistWidget->setCurrentRow(index + 1);
+            } else {
+                /* We've reached the end of the playlist, let's start again. */
+                m_player.setCurrent(0);
+                m_player.play();
+                m_ui->playlistWidget->setCurrentRow(0);
+            }
         }
         break;
     }
@@ -240,8 +323,9 @@ void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
     m_player.setCurrent(index);
     m_player.play();
 
-    m_ui->playingEdit->setText(getMusicName(m_playlist[index]));
+    m_ui->playingEdit->setText(musicName(m_playlist[index]));
     m_ui->playButton->setText(tr("Pause"));
+    m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
 }
 
 void MainWindow::onRemoveSongActionTriggered(bool triggered)
@@ -263,12 +347,27 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
         onClosePlayListActionRequested();
     }
 
+    bool playlistRemoved {false};
     m_playlistSettings->beginGroup("Playlists");
     for (const auto &playlist : m_playlistSettings->childGroups()) {
         m_playlistSettings->beginGroup(playlist);
         if (m_playlistSettings->contains(filename)) {
             m_playlistSettings->remove(filename);
+
+            if (m_playlistSettings->allKeys().isEmpty()) {
+                m_playlistSettings->remove(playlist);
+                m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+                playlistRemoved = true;
+
+                m_settings->beginGroup("PlaylistSettings");
+                if (m_settings->value("DefaultPlaylist").toString() == playlist) {
+                    m_settings->setValue("DefaultPlaylist", "None");
+                }
+                m_settings->endGroup();
+            }
+
             m_playlistSettings->endGroup();
+
             break;
         }
         m_playlistSettings->endGroup();
@@ -340,14 +439,21 @@ void MainWindow::onOpenFilesActionRequested()
         return;
     }
 
+    bool wasPlaylistEmpty = m_playlist.isEmpty();
+
     m_playlist << playlist;
 
     m_player.setPlayList(m_playlist);
-    hasRepeated = false;
 
-    for (const auto &filename : m_playlist) {
-        auto name = getMusicName(filename);
+    for (const auto &filename : playlist) {
+        auto name = musicName(filename);
         m_ui->playlistWidget->addItem(name);
+    }
+
+    if (wasPlaylistEmpty) {
+        m_player.setCurrent(0);
+        m_ui->playingEdit->setText(musicName(m_playlist[0]));
+        m_ui->playlistWidget->setCurrentRow(0);
     }
 }
 
@@ -364,11 +470,20 @@ void MainWindow::onOpenPlayListActionRequested()
         return;
     }
 
+    loadPlaylist(playlist);
+}
+
+void MainWindow::loadPlaylist(const QString &playlistName)
+{
     /* First close the current playlist if there's one. */
     onClosePlayListActionRequested();
 
+    if (playlistName == "None") {
+        return;
+    }
+
     m_playlistSettings->beginGroup("Playlists");
-    m_playlistSettings->beginGroup(playlist);
+    m_playlistSettings->beginGroup(playlistName);
 
     for (auto filename : m_playlistSettings->allKeys()) {
 #ifdef Q_OS_LINUX
@@ -377,16 +492,34 @@ void MainWindow::onOpenPlayListActionRequested()
         filename.prepend("/");
 #endif
         m_playlist << filename;
-        auto musicName = getMusicName(m_playlistSettings->value(filename).toString());
-        m_ui->playlistWidget->addItem(musicName);
+        auto name = musicName(m_playlistSettings->value(filename).toString());
+        m_ui->playlistWidget->addItem(name);
     }
 
+    m_playlistInitState = m_playlist;
     m_player.setPlayList(m_playlist);
-    hasRepeated = false;
+    m_player.setCurrent(0);
+
     m_playlistSettings->endGroup(); /* Playlists */
     m_playlistSettings->endGroup(); /* playlist */
-    m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlist));
-    m_currentPlaylistName = playlist;
+
+    m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlistName));
+    m_ui->playlistWidget->setCurrentRow(0);
+    m_ui->playingEdit->setText(musicName(m_playlist[0]));
+
+    m_currentPlaylistName = playlistName;
+}
+
+void MainWindow::setVolumeIcon()
+{
+    int level = m_ui->volumeSlider->value();
+    if (level < 25) {
+        m_ui->volumeIconButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeLow));
+    } else if (level < 75) {
+        m_ui->volumeIconButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeMedium));
+    } else {
+        m_ui->volumeIconButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeHigh));
+    }
 }
 
 void MainWindow::onClosePlayListActionRequested()
@@ -398,6 +531,7 @@ void MainWindow::onClosePlayListActionRequested()
     m_ui->playlistWidget->clear();
     m_ui->playingEdit->setText("");
     m_ui->playButton->setText(tr("Play"));
+    m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     m_ui->durationLabel->setText("0/0");
     m_ui->seekMusicSlider->setValue(0);
 }
@@ -411,15 +545,37 @@ void MainWindow::onSavePlayListActionRequested()
         return;
     }
 
-    auto name = QInputDialog::getText(this,
-                                      tr("Give it a name"),
-                                      tr("How should we call this awesome playlist?"));
-    if (name.isEmpty()) {
-        return;
+    bool updated {false};
+    QString name;
+    QStringList songs;
+
+    if (m_ui->playlistLabel->text() == tr("Playlist: Unnamed")) {
+        name = QInputDialog::getText(this,
+                                     tr("Give it a name"),
+                                     tr("How should we call this awesome playlist?"));
+        if (name.isEmpty()) {
+            return;
+        }
+
+        songs = m_playlist;
+    } else {
+        for (const auto &song : m_playlist) {
+            if (not m_playlistInitState.contains(song)) {
+                songs << song;
+            }
+        }
+
+        if (songs.isEmpty()) {
+            return;
+        }
+
+        name = m_ui->playlistLabel->text();
+        name = name.mid(name.indexOf(':') + 2);
+        updated = true;
     }
 
     m_playlistSettings->beginGroup("Playlists");
-    if (m_playlistSettings->childGroups().contains(name, Qt::CaseInsensitive)) {
+    if (m_playlistSettings->childGroups().contains(name, Qt::CaseInsensitive) and not updated) {
         auto reply = QMessageBox::question(this,
                                            tr("Oops"),
                                            tr("It seems that this playlist already exists. "
@@ -432,8 +588,8 @@ void MainWindow::onSavePlayListActionRequested()
     }
 
     m_playlistSettings->beginGroup(name);
-    for (const auto &filename : m_playlist) {
-        m_playlistSettings->setValue(filename, getMusicName(filename));
+    for (const auto &filename : songs) {
+        m_playlistSettings->setValue(filename, musicName(filename));
     }
     m_playlistSettings->endGroup(); /* name */
     m_playlistSettings->endGroup(); /* Playlists */
@@ -441,9 +597,11 @@ void MainWindow::onSavePlayListActionRequested()
     m_ui->playlistLabel->setText(tr("Playlist: %1").arg(name));
     m_currentPlaylistName = name;
 
-    QMessageBox::information(this,
-                             tr("Yay!"),
-                             tr("Now you can play all the awesome music %1 has!").arg(name));
+    auto message = updated
+                       ? tr("Playlist %1 has been updated!").arg(name)
+                       : tr("Now you can play all the awesome music %1 has!").arg(name);
+
+    QMessageBox::information(this, tr("Yay!"), message);
 }
 
 void MainWindow::onRemovePlayListActionRequested()
@@ -482,13 +640,22 @@ void MainWindow::onOpenSettings()
     loop.exec();
 }
 
+void MainWindow::playShortcutHelper()
+{
+    if (m_ui->playingEdit->text().isEmpty()) {
+        return;
+    }
+
+    m_ui->playButton->click();
+}
+
 void MainWindow::onPlayButtonClicked()
 {
     auto *snder = qobject_cast<QPushButton *>(sender());
     /* tr() seems to inserts an & somewhere in the text.
      * I find easier just to check if text is not &Pause than
      * looking where the & is. */
-    if (snder->text() == tr("&Play")) {
+    if (snder->text().contains(tr("Play"))) {
         if (m_ui->playingEdit->text().isEmpty()) {
             QMessageBox::warning(this,
                                  tr("Warning"),
@@ -499,43 +666,65 @@ void MainWindow::onPlayButtonClicked()
 
         m_player.play();
         snder->setText(tr("Pause"));
-    } else if (snder->text() != tr("&Pause")) {
+        m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+    } else if (not snder->text().contains(tr("Pause"))) {
         m_player.play();
         snder->setText(tr("Pause"));
+        m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
     } else {
         m_player.pause();
         snder->setText(tr("Continue"));
+        m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     }
 }
 
-void MainWindow::onStopButtonClicked()
+void MainWindow::onStopActionRequested()
 {
     m_player.stop();
     if (m_ui->playButton->text() != tr("&Play")) {
         m_ui->playButton->setText(tr("Play"));
+        m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     }
+}
 
-    hasRepeated = false;
+void MainWindow::onPreviousButtonClicked()
+{
+    if (m_player.playPrevious()) {
+        int index = m_ui->playlistWidget->currentRow() - 1;
+        m_ui->playlistWidget->setCurrentRow(index);
+        m_ui->playingEdit->setText(musicName(m_playlist[index]));
+    } // No need to warn because player emits a warning signal and it's caught by this class.
+}
+
+void MainWindow::onNextButtonClicked()
+{
+    if (m_player.playNext()) {
+        int index = m_ui->playlistWidget->currentRow() + 1;
+        m_ui->playlistWidget->setCurrentRow(index);
+        m_ui->playingEdit->setText(musicName(m_playlist[index]));
+        m_ui->playButton->setText(tr("Pause"));
+        m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+    } else {
+        QMessageBox::warning(this, tr("Warning"), tr("There's no next music to play."));
+    }
 }
 
 void MainWindow::onAutoRepeatButtonClicked()
 {
-    auto *snder = qobject_cast<QPushButton *>(sender());
-    auto text = snder->text();
+    auto text = m_ui->autoRepeatButton->text();
 
-    if (text == tr("&Auto Repeat")) {
-        m_autoRepeatType = AUTOREPEAT_TYPE::ONCE;
-        snder->setText(tr("Auto Repeat Once"));
-        snder->setToolTip(tr("Current music will repeat just once."));
-        hasRepeated = false;
-    } else if (text.contains("Once")) {
-        m_autoRepeatType = AUTOREPEAT_TYPE::ALL;
-        snder->setText(tr("Auto Repeat All"));
-        snder->setToolTip(tr("Current playlist will repeat forever."));
+    if (text.isEmpty()) {
+        m_autorepeat = AUTOREPEAT::ONE;
+        m_ui->autoRepeatButton->setText(tr("1"));
+        m_ui->autoRepeatButton->setToolTip(tr("Current music will repeat forever."));
+    } else if (text.contains(tr("1"))) {
+        m_autorepeat = AUTOREPEAT::ALL;
+        m_ui->autoRepeatButton->setText(tr("All"));
+        m_ui->autoRepeatButton->setToolTip(tr("Current playlist will repeat forever."));
     } else {
-        m_autoRepeatType = AUTOREPEAT_TYPE::DONT_AUTOREPEAT;
-        snder->setText(tr("Auto Repeat"));
-        snder->setToolTip(tr("Neither current music nor current playlist repeats."));
+        m_autorepeat = AUTOREPEAT::NONE;
+        m_ui->autoRepeatButton->setText("");
+        m_ui->autoRepeatButton->setToolTip(tr("Neither current music nor current playlist repeats."));
     }
 }
 
@@ -558,6 +747,59 @@ void MainWindow::onVolumeSliderValueChanged(int value)
     m_ui->volumeSlider->setToolTip(
         tr("Current volume level: %1%").arg(m_ui->volumeSlider->value())
     );
+
+    setVolumeIcon();
+}
+
+void MainWindow::onVolumeIconButtonClicked()
+{
+    int level = m_ui->volumeSlider->value();
+    /* Second condition is to allow to cycle on press */
+    if (level < 25 or level == 100) {
+        level = 25;
+    } else if (level < 50) {
+        level = 50;
+    } else if (level < 75) {
+        level = 75;
+    } else {
+        level = 100;
+    }
+
+    m_ui->volumeSlider->setValue(level);
+}
+
+void MainWindow::onVolumeIncrease()
+{
+    auto *snder = qobject_cast<QShortcut *>(sender());
+    if (snder == nullptr) {
+        return;
+    }
+
+    int level = m_ui->volumeSlider->value();
+    level += snder == m_increaseVolumeBy5Shortcut ? 5 : 10;
+
+    if (level > 100) {
+        level = 100;
+    }
+
+    m_ui->volumeSlider->setValue(level);
+}
+
+void MainWindow::onVolumeDecrease()
+{
+    auto *snder = qobject_cast<QShortcut *>(sender());
+    if (snder == nullptr) {
+        return;
+    }
+
+    int level = m_ui->volumeSlider->value();
+    level -= snder == m_decreaseVolumeBy5Shortcut ? 5 : 10;
+
+    if (level < 0) {
+        level = 0;
+    }
+
+    m_ui->volumeSlider->setValue(level);
 }
 
 void MainWindow::about()

@@ -4,13 +4,25 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QLocale>
+#include <QMessageBox>
 #include <QSettings>
 #include <QTranslator>
+#include <iostream>
+#include <string>
 
 #include "config.hpp"
 #include "player.hpp"
 
+const QMap<QString, QString> availableLanguages {
+    { "es", ":/resources/i18n/QBitMPlayer_es_MX.qm" },
+    /* In order to handle several user inputs. */
+    { "sp", ":/resources/i18n/QBitMPlayer_es_MX.qm" },
+    { "español", ":/resources/i18n/QBitMPlayer_es_MX.qm" }
+};
+
 QList<QCommandLineOption> commandLineOptions();
+/* Prompts user for a reply with a QMessageBox or in the command line. */
+QMessageBox::StandardButton showMessage(int argc, const QString &message, bool question);
 
 int main(int argc, char *argv[])
 {
@@ -26,17 +38,45 @@ int main(int argc, char *argv[])
     parser.process(a);
 
     QTranslator translator;
-    const QStringList uiLanguages = QLocale::system().uiLanguages();
-    for (const QString &locale : uiLanguages) {
-        const QString baseName = "QBitMPlayer_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
+
+    if (parser.isSet("language")) {
+        auto lang = parser.value("language").toLower();
+        if (not availableLanguages.contains(lang)) {
+            showMessage(
+                argc,
+                QObject::tr("Language %1 is not yet supported.").arg(lang),
+                false
+            );
+            return 1;
+        }
+
+        if (translator.load(availableLanguages[lang])) {
             a.installTranslator(&translator);
-            break;
+        } else {
+            auto reply = showMessage(
+                argc,
+                QObject::tr("Language: %1 couldn't be loaded. "
+                            "Would you like to continue with English?").arg(lang),
+                true
+                );
+
+            if (reply != QMessageBox::Yes) {
+                return 1;
+            }
+        }
+    } else {
+        const QStringList uiLanguages = QLocale::system().uiLanguages();
+        for (const QString &locale : uiLanguages) {
+            const QString baseName = "QBitMPlayer_" + QLocale(locale).name();
+            if (translator.load(":/i18n/" + baseName)) {
+                a.installTranslator(&translator);
+                break;
+            }
         }
     }
 
-    /* If user didn't provide any command line option, show the GUI. */
-    if (argc == 1) {
+    /* If user didn't provide any command line option or just set language, show the GUI. */
+    if (argc == 1 or (parser.isSet("language") and argc == 3)) {
         MainWindow w;
         bool maximized {false};
 
@@ -51,6 +91,11 @@ int main(int argc, char *argv[])
             maximized = settings.value("AlwaysMaximized", false).toBool()
                         or (settings.value("Maximized", false).toBool()
                             and settings.value("RememberWindowSize", false).toBool());
+
+            /* Center window by default. User can overwrite this in the settings page. */
+            if (not settings.contains("Centered")) {
+                settings.setValue("Centered", true);
+            }
 
             settings.endGroup();
 
@@ -102,5 +147,38 @@ QList<QCommandLineOption> commandLineOptions()
         "files"
     );
 
+    options << QCommandLineOption(
+        QStringList() << "l" << "language",
+        QObject::tr("Which language to display the app in other than English. "
+                    "Available: Spanish."),
+        "language"
+    );
+
     return options;
+}
+
+QMessageBox::StandardButton showMessage(int argc, const QString &message, bool question)
+{
+    if (argc == 3) {
+        if (question) {
+            return QMessageBox::question(nullptr, QObject::tr("Question"), message);
+        } else {
+            return QMessageBox::critical(nullptr, QObject::tr("Error"), message);
+        }
+    } else {
+        if (question) {
+            std::string input;
+            std::cout << message.toStdString() << " [Y/N]: ";
+            std::getline(std::cin, input);
+            if (QString(input.c_str()).contains("Y", Qt::CaseInsensitive)) {
+                return QMessageBox::Yes;
+            } else {
+                return QMessageBox::No;
+            }
+        } else {
+            qInfo().noquote() << message;
+        }
+    }
+
+    return QMessageBox::Yes;
 }

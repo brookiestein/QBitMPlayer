@@ -41,7 +41,6 @@ void Player::setCurrent(qint64 index)
     m_currentMusicIndex = index;
     m_mediaPlayer->setSource(QUrl::fromLocalFile(m_playlist[index]));
     m_currentMusicFilename = m_playlist[index];
-    qDebug() << m_currentMusicFilename;
 }
 
 void Player::setAutoPlay(bool autoPlay)
@@ -93,7 +92,7 @@ bool Player::play()
 
 bool Player::playPrevious()
 {
-    if (m_currentMusicIndex == 0) {
+    if (m_currentMusicIndex <= 0) {
         emit warning(tr("There's no previous music to play."));
         return false;
     }
@@ -109,7 +108,7 @@ bool Player::playNext()
 {
     ++m_currentMusicIndex;
     if (not hasNext()) {
-        qDebug() << "There's no next music to play.";
+        --m_currentMusicIndex;
         return false;
     }
 

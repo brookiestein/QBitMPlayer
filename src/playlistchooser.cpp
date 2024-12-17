@@ -4,7 +4,8 @@
 PlaylistChooser::PlaylistChooser(QSettings *settings, QWidget *parent)
     : QWidget(parent)
     , m_ui(new Ui::PlaylistChooser)
-    , m_settings(settings)
+    , m_settings {settings}
+    , m_quitShortcut {new QShortcut(QKeySequence(Qt::Key_Escape), this)}
 {
     m_ui->setupUi(this);
 
@@ -12,6 +13,7 @@ PlaylistChooser::PlaylistChooser(QSettings *settings, QWidget *parent)
     loadPlaylists();
 
     connect(m_ui->tableWidget, &QTableWidget::cellDoubleClicked, this, &PlaylistChooser::onItemDoubleClicked);
+    connect(m_quitShortcut, &QShortcut::activated, this, &QWidget::close);
 }
 
 PlaylistChooser::~PlaylistChooser()

@@ -11,12 +11,14 @@
 Settings::Settings(QWidget *parent)
     : QWidget(parent)
     , m_ui(new Ui::Settings)
-    , m_modified(false)
-    , m_changesApplied(false)
+    , m_modified {false}
+    , m_changesApplied {false}
+    , m_quitShortcut {new QShortcut(QKeySequence(Qt::Key_Escape), this)}
 {
     m_ui->setupUi(this);
     m_ui->tabWidget->setTabText(0, tr("Window"));
     m_ui->tabWidget->setTabText(1, tr("Audio"));
+    m_ui->tabWidget->setTabText(2, tr("Playlist"));
     m_ui->tabWidget->setCurrentIndex(0);
     setWindowTitle(tr("%1 - Settings").arg(PROJECT_NAME));
 
@@ -29,14 +31,39 @@ Settings::Settings(QWidget *parent)
     m_ui->volumeLevelEdit->setValidator(volumeValidator);
     m_ui->applyWindowSettingsButton->setEnabled(false);
     m_ui->applyAudioSettingsButton->setEnabled(false);
+    m_ui->applyPlaylistSettingsButton->setEnabled(false);
+
+    m_ui->centeredCheckBox->setToolTip(
+        tr("If checked, floating window will always be opened at the center of the screen.")
+    );
+
+    m_ui->alwaysMaximizedCheckBox->setToolTip(
+        tr("If checked, window will always be opened maximized.")
+    );
+
+    m_playlistSettings = new QSettings(
+        createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
+        QSettings::IniFormat,
+        this
+    );
 
     m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
     m_settings->beginGroup("WindowSettings");
 
     auto state = m_settings->value("RememberWindowSize", false).toBool() ? Qt::Checked : Qt::Unchecked;
     m_ui->rememberWindowSizeCheckBox->setCheckState(state);
+
+    state = m_settings->value("Centered", false).toBool() ? Qt::Checked : Qt::Unchecked;
+    m_ui->centeredCheckBox->setCheckState(state);
+
     state = m_settings->value("AlwaysMaximized", false).toBool() ? Qt::Checked : Qt::Unchecked;
     m_ui->alwaysMaximizedCheckBox->setCheckState(state);
+
+    /* AlwaysMaximized state overwrites Centered */
+    if (m_ui->alwaysMaximizedCheckBox->isChecked()) {
+        m_ui->centeredCheckBox->setEnabled(false);
+        m_ui->centeredCheckBox->setCheckState(Qt::Unchecked);
+    }
 
     int width = m_settings->value("Width", geometry().width()).toInt();
     int height = m_settings->value("Height", geometry().height()).toInt();
@@ -62,12 +89,25 @@ Settings::Settings(QWidget *parent)
     auto stateText = tr("Changes will apply on reboot.");
     m_ui->windowStateLabel->setText(stateText);
     m_ui->audioStateLabel->setText(stateText);
+    m_ui->playlistStateLabel->setText(stateText);
+
+    loadPlaylists();
+    setInitialValues();
+
+    connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &Settings::onCurrentChanged);
 
     connect(
         m_ui->rememberWindowSizeCheckBox,
         &QCheckBox::checkStateChanged,
         this,
         &Settings::onRememberWindowSizeChecked
+    );
+
+    connect(
+        m_ui->centeredCheckBox,
+        &QCheckBox::checkStateChanged,
+        this,
+        &Settings::checkForChange
     );
 
     connect(
@@ -81,6 +121,7 @@ Settings::Settings(QWidget *parent)
     connect(m_ui->heightEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->applyWindowSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
     connect(m_ui->applyAudioSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
+    connect(m_ui->applyPlaylistSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
 
     connect(
         m_ui->rememberVolumeLevelCheckBox,
@@ -91,7 +132,14 @@ Settings::Settings(QWidget *parent)
 
     connect(m_ui->volumeLevelEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
 
-    setInitialValues();
+    connect(
+        m_ui->defaultPlaylistComboBox,
+        &QComboBox::currentIndexChanged,
+        this,
+        &Settings::checkForChange
+    );
+
+    connect(m_quitShortcut, &QShortcut::activated, this, &QWidget::close);
 }
 
 Settings::~Settings()
@@ -130,11 +178,36 @@ void Settings::closeEvent(QCloseEvent *event)
     QWidget::closeEvent(event);
 }
 
-QString Settings::createEnvironment()
+void Settings::onCurrentChanged(int index)
 {
-    auto configLocation = QString("%1%2%3")
-                              .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation),
-                                   QDir::separator(), PROJECT_NAME);
+    if (not windowTitle().contains('*')) {
+        return;
+    }
+
+    switch (index)
+    {
+    case 0:
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        break;
+    case 1:
+        m_ui->applyAudioSettingsButton->setEnabled(true);
+        break;
+    case 2:
+        m_ui->applyPlaylistSettingsButton->setEnabled(true);
+        break;
+    }
+}
+
+QString Settings::createEnvironment(const QString &location)
+{
+    QString configLocation;
+
+    if (not location.endsWith(PROJECT_NAME)) {
+        configLocation = QString("%1%2%3").arg(location, QDir::separator(), PROJECT_NAME);
+    } else {
+        configLocation = location;
+    }
+
     QDir d;
     if (not d.exists(configLocation)) {
         d.mkpath(configLocation);
@@ -144,15 +217,38 @@ QString Settings::createEnvironment()
     return configFile;
 }
 
+void Settings::loadPlaylists()
+{
+    m_playlistSettings->beginGroup("Playlists");
+
+    m_ui->defaultPlaylistComboBox->addItem(tr("None"));
+    for (const auto &playlist : m_playlistSettings->childGroups()) {
+        m_ui->defaultPlaylistComboBox->addItem(playlist);
+    }
+
+    m_playlistSettings->endGroup();
+
+    m_settings->beginGroup("PlaylistSettings");
+    auto playlistName = m_settings->value("DefaultPlaylist", "").toString();
+    m_settings->endGroup();
+
+    if (not playlistName.isEmpty()) {
+        m_ui->defaultPlaylistComboBox->setCurrentText(playlistName);
+    }
+}
+
 void Settings::setInitialValues()
 {
     m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] = m_ui->rememberWindowSizeCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->centeredCheckBox] = m_ui->centeredCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] = m_ui->alwaysMaximizedCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
 
     m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
     m_initialFieldValues[m_ui->heightEdit] = m_ui->heightEdit->text();
     m_initialFieldValues[m_ui->volumeLevelEdit] = m_ui->volumeLevelEdit->text();
+
+    m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] = m_ui->defaultPlaylistComboBox->currentIndex();
 }
 
 /* Works, but is it the best way to check for a change? */
@@ -160,6 +256,12 @@ void Settings::checkForChange()
 {
     bool changed {false};
     if (m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] != m_ui->rememberWindowSizeCheckBox->isChecked()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialCheckBoxesValues[m_ui->centeredCheckBox] != m_ui->centeredCheckBox->isChecked()) {
         m_ui->applyWindowSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
@@ -195,6 +297,12 @@ void Settings::checkForChange()
         goto exit;
     }
 
+    if (m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] != m_ui->defaultPlaylistComboBox->currentIndex()) {
+        m_ui->applyPlaylistSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
 exit:
     m_modified = changed;
     auto title = windowTitle();
@@ -210,6 +318,7 @@ exit:
 
         m_ui->applyWindowSettingsButton->setEnabled(false);
         m_ui->applyAudioSettingsButton->setEnabled(false);
+        m_ui->applyPlaylistSettingsButton->setEnabled(false);
     }
 }
 
@@ -242,10 +351,14 @@ void Settings::onAlwaysMaximizedChecked(Qt::CheckState state)
             m_ui->widthEdit->setEnabled(true);
             m_ui->heightEdit->setEnabled(true);
         }
+
+        m_ui->centeredCheckBox->setEnabled(true);
         break;
     case Qt::PartiallyChecked: [[fallthrough]];
     case Qt::Checked:
         m_ui->rememberWindowSizeCheckBox->setChecked(false);
+        m_ui->centeredCheckBox->setChecked(false);
+        m_ui->centeredCheckBox->setEnabled(false);
         m_ui->widthEdit->setEnabled(false);
         m_ui->heightEdit->setEnabled(false);
         break;
@@ -278,6 +391,7 @@ void Settings::applyChanges()
 
     m_settings->beginGroup("WindowSettings");
     bool rememberWindowSize = m_ui->rememberWindowSizeCheckBox->isChecked();
+    bool centered = m_ui->centeredCheckBox->isChecked();
     bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
     bool rememberVolumeLevel = m_ui->rememberVolumeLevelCheckBox->isChecked();
     int width {-1};
@@ -335,6 +449,7 @@ void Settings::applyChanges()
     }
 
     m_settings->setValue("RememberWindowSize", rememberWindowSize);
+    m_settings->setValue("Centered", centered);
     m_settings->setValue("AlwaysMaximized", alwaysMaximized);
     if (width >= 0)
         m_settings->setValue("Width", width);
@@ -348,10 +463,24 @@ void Settings::applyChanges()
         m_settings->setValue("VolumeLevel", volumeLevel);
     m_settings->endGroup();
 
+    if (m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] != m_ui->defaultPlaylistComboBox->currentIndex()) {
+        m_settings->beginGroup("PlaylistSettings");
+
+        /* Don't translate this value for setting. */
+        auto name = m_ui->defaultPlaylistComboBox->currentText();
+        if (name == tr("None")) {
+            name = "None";
+        }
+
+        m_settings->setValue("DefaultPlaylist", name);
+        m_settings->endGroup();
+    }
+
     setWindowTitle(windowTitle().mid(0, windowTitle().indexOf('*')));
     setInitialValues();
     m_modified = false;
     m_changesApplied = true;
     m_ui->applyWindowSettingsButton->setEnabled(m_modified);
     m_ui->applyAudioSettingsButton->setEnabled(m_modified);
+    m_ui->applyPlaylistSettingsButton->setEnabled(m_modified);
 }

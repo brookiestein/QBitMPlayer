@@ -41,12 +41,18 @@
             <property name="text">
              <string>Open</string>
             </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="closePlayListButton">
             <property name="text">
              <string>Close</string>
+            </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::ListRemove"/>
             </property>
            </widget>
           </item>
@@ -55,12 +61,18 @@
             <property name="text">
              <string>Save</string>
             </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="removePlaylistButton">
             <property name="text">
              <string>Remove</string>
+            </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::EditDelete"/>
             </property>
            </widget>
           </item>
@@ -69,7 +81,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="playAreaHorizontalLayout">
+       <layout class="QVBoxLayout" name="playingAreaVerticalLayout" stretch="0,0,0,0,0">
         <item>
          <layout class="QHBoxLayout" name="playingHorizontalLayout">
           <item>
@@ -95,6 +107,9 @@
            <widget class="QPushButton" name="openFilesButton">
             <property name="text">
              <string>Open Files</string>
+            </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
             </property>
            </widget>
           </item>
@@ -143,12 +158,38 @@
             <property name="text">
              <string>Play</string>
             </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="stopButton">
             <property name="text">
              <string>Stop</string>
+            </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::MediaPlaybackStop"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="previousButton">
+            <property name="text">
+             <string>Previous</string>
+            </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::MediaSeekBackward"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="nextButton">
+            <property name="text">
+             <string>Next</string>
+            </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::MediaSeekForward"/>
             </property>
            </widget>
           </item>
@@ -157,12 +198,15 @@
             <property name="text">
              <string>Auto Repeat</string>
             </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::SystemReboot"/>
+            </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="volumeHorizontalLayout" stretch="1,0,0">
+         <layout class="QHBoxLayout" name="volumeHorizontalLayout" stretch="1,0,0,0">
           <item>
            <spacer name="volumeHorizontalSpacer">
             <property name="orientation">
@@ -192,6 +236,19 @@
            <widget class="QSlider" name="volumeSlider">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="volumeIconButton">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -279,7 +336,7 @@
     <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
    </property>
    <property name="text">
-    <string>Open Playlist</string>
+    <string>Open &amp;Playlist</string>
    </property>
   </action>
   <action name="actionClosePlaylist">
@@ -287,7 +344,7 @@
     <iconset theme="QIcon::ThemeIcon::ListRemove"/>
    </property>
    <property name="text">
-    <string>Close Playlist</string>
+    <string>&amp;Close Playlist</string>
    </property>
   </action>
   <action name="actionSavePlaylist">
@@ -295,7 +352,7 @@
     <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
    </property>
    <property name="text">
-    <string>Save Playlist</string>
+    <string>Sa&amp;ve Playlist</string>
    </property>
   </action>
   <action name="actionRemovePlaylist">
@@ -303,7 +360,7 @@
     <iconset theme="QIcon::ThemeIcon::EditDelete"/>
    </property>
    <property name="text">
-    <string>Remove Playlist</string>
+    <string>&amp;Remove Playlist</string>
    </property>
   </action>
  </widget>

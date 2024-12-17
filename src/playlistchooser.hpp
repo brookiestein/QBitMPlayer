@@ -3,6 +3,7 @@
 
 #include <QCloseEvent>
 #include <QSettings>
+#include <QShortcut>
 #include <QShowEvent>
 #include <QWidget>
 
@@ -36,6 +37,7 @@ private:
     Ui::PlaylistChooser *m_ui;
     QSettings *m_settings;
     QString m_chosenPlaylist;
+    QShortcut *m_quitShortcut; /* Quit on Espace pressed */
 };
 
 #endif // PLAYLISTCHOOSER_HPP

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(QBitMPlayer
-    VERSION 2.4.3
+    VERSION 2.5.0
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 
 set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
@@ -34,7 +34,7 @@ set(PROJECT_SOURCES
     settings.cpp
     settings.ui
     ../${TS_FILES}
-    ../resources/resources.qrc
+    ../resources.qrc
 )
 
 list(TRANSFORM PROJECT_SOURCES PREPEND "src/")
