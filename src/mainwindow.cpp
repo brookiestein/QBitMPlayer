@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
             move(screen()->geometry().center() - frameGeometry().center());
         }
     }
+    m_settings->endGroup();
 
     m_settings->beginGroup("AudioSettings");
     m_ui->volumeSlider->setRange(0, 100);
