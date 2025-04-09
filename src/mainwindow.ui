@@ -274,6 +274,8 @@
      <string>File</string>
     </property>
     <addaction name="actionOpenFiles"/>
+    <addaction name="actionOpen_Directory"/>
+    <addaction name="separator"/>
     <addaction name="actionOpenPlaylist"/>
     <addaction name="actionClosePlaylist"/>
     <addaction name="actionSavePlaylist"/>
@@ -361,6 +363,14 @@
    </property>
    <property name="text">
     <string>&amp;Remove Playlist</string>
+   </property>
+  </action>
+  <action name="actionOpen_Directory">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+   </property>
+   <property name="text">
+    <string>Open &amp;Directory</string>
    </property>
   </action>
  </widget>

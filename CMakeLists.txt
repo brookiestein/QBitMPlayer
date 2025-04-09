@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(QBitMPlayer
-    VERSION 2.5.1
+    VERSION 2.6.0
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -83,7 +83,7 @@ target_link_libraries(QBitMPlayer PRIVATE
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-    set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.QBitMPlayer)
+    set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.salazarcodes.QBitMPlayer)
 endif()
 set_target_properties(QBitMPlayer PROPERTIES
     ${BUNDLE_ID_OPTION}

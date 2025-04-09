@@ -63,6 +63,7 @@ private:
 
     QShortcut *m_quitShortcut; /* Ctrl + Q */
     QShortcut *m_openFilesShortcut; /* Ctrl + O */
+    QShortcut *m_openDirectoryShortcut; /* Ctrl + D */
     QShortcut *m_openPlaylistShortcut; /* Ctrl + Shift + O */
     QShortcut *m_closePlaylistShortcut; /* Ctrl + C */
     QShortcut *m_savePlaylistShortcut; /* Ctrl + S */
@@ -88,6 +89,8 @@ private slots:
     void finished();
     void onPlaylistItemDoubleClicked(QListWidgetItem *item);
     void onRemoveSongActionTriggered([[maybe_unused]] bool triggered);
+    QStringList findFiles(const QString &dir, const QStringList &filters);
+    QStringList openFiles(bool justFiles = true);
     void onOpenFilesActionRequested();
     void onOpenPlayListActionRequested();
     void onClosePlayListActionRequested();

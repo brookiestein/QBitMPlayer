@@ -2,8 +2,10 @@
 #include "./ui_mainwindow.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QEventLoop>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QInputDialog>
 #include <QMediaFormat>
 #include <QMessageBox>
@@ -20,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_canModifySlider {true}
     , m_quitShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_Q), this)}
     , m_openFilesShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_O), this)}
+    , m_openDirectoryShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_D), this)}
     , m_openPlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Modifier::SHIFT | Qt::Key_O), this)}
     , m_closePlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_C), this)}
     , m_savePlaylistShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_S), this)}
@@ -39,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->setupUi(this);
 
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
-    m_ui->durationLabel->setText("0/0");
+    m_ui->durationLabel->setText("00:00:00/00:00:00");
     m_ui->autoRepeatButton->setText("");
     m_ui->autoRepeatButton->setToolTip(
         tr("Neither current music nor current playlist repeats.")
@@ -90,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_addSongToPlaylist, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onRemoveSongActionTriggered);
     connect(m_ui->actionOpenFiles, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
+    connect(m_ui->actionOpen_Directory, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionQuit, &QAction::triggered, this, &MainWindow::onQuit);
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
@@ -117,6 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
     /* Keyboard shortcuts */
     connect(m_quitShortcut, &QShortcut::activated, this, &MainWindow::onQuit);
     connect(m_openFilesShortcut, &QShortcut::activated, this, &MainWindow::onOpenFilesActionRequested);
+    connect(m_openDirectoryShortcut, &QShortcut::activated, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_openPlaylistShortcut, &QShortcut::activated, this, &MainWindow::onOpenPlayListActionRequested);
     connect(m_closePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onClosePlayListActionRequested);
     connect(m_savePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onSavePlayListActionRequested);
@@ -189,7 +194,7 @@ void MainWindow::resetControls()
     m_ui->playButton->setText(tr("Play"));
     m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     m_ui->seekMusicSlider->setValue(0);
-    m_ui->durationLabel->setText(QString("0/%1:%2:%3")
+    m_ui->durationLabel->setText(QString("00:00:00/%1:%2:%3")
                                      .arg(QString::number(m_hours),
                                           QString::number(m_minutes),
                                           QString::number(m_seconds))
@@ -236,11 +241,15 @@ void MainWindow::durationChanged(qint64 duration)
         --duration;
     }
 
-    m_ui->durationLabel->setText(QString("0/%1:%2:%3")
-                                     .arg(QString::number(m_hours),
-                                          QString::number(m_minutes),
-                                          QString::number(m_seconds))
-                                 );
+    m_ui->durationLabel->setText(
+        QString("00:00:00/%1%2:%3%4:%5%6")
+            .arg(m_hours < 10 ? "0" : "",
+                 QString::number(m_hours),
+                 m_minutes < 10 ? "0" : "",
+                 QString::number(m_minutes),
+                 m_seconds < 10 ? "0" : "",
+                 QString::number(m_seconds))
+        );
 }
 
 void MainWindow::positionChanged(qint64 position)
@@ -269,14 +278,13 @@ void MainWindow::positionChanged(qint64 position)
         --position;
     }
 
-    QRegularExpression regex("*/");
-    auto time = QString("%1:%2:%3/%4:%5:%6")
-                    .arg(QString::number(hours),
-                         QString::number(minutes),
-                         QString::number(seconds),
-                         QString::number(m_hours),
-                         QString::number(m_minutes),
-                         QString::number(m_seconds)
+    auto time = QString("%1%2:%3%4:%5%6/%7%8:%9%10:%11%12")
+                    .arg(hours < 10 ? "0" : "", QString::number(hours),
+                         minutes < 10 ? "0" : "", QString::number(minutes),
+                         seconds < 10 ? "0" : "", QString::number(seconds),
+                         m_hours < 10 ? "0" : "", QString::number(m_hours),
+                         m_minutes < 10 ? "0" : "", QString::number(m_minutes),
+                         m_seconds < 10 ? "0" : "", QString::number(m_seconds)
                          );
     m_ui->durationLabel->setText(time);
 }
@@ -348,7 +356,6 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
         onClosePlayListActionRequested();
     }
 
-    bool playlistRemoved {false};
     m_playlistSettings->beginGroup("Playlists");
     for (const auto &playlist : m_playlistSettings->childGroups()) {
         m_playlistSettings->beginGroup(playlist);
@@ -358,7 +365,6 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
             if (m_playlistSettings->allKeys().isEmpty()) {
                 m_playlistSettings->remove(playlist);
                 m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
-                playlistRemoved = true;
 
                 m_settings->beginGroup("PlaylistSettings");
                 if (m_settings->value("DefaultPlaylist").toString() == playlist) {
@@ -376,7 +382,30 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
     m_playlistSettings->endGroup();
 }
 
-void MainWindow::onOpenFilesActionRequested()
+QStringList MainWindow::findFiles(const QString &dir, const QStringList &filters)
+{
+    QStringList files;
+    for (const auto &entry : QDir(dir).entryList(QDir::Filter::AllEntries | QDir::Filter::NoDotAndDotDot)) {
+        auto filepath = QString("%1%2%3").arg(dir, QDir::separator(), entry);
+
+        if (QFileInfo info(filepath); info.isFile()) {
+            auto fileExtension = entry.mid(entry.lastIndexOf('.'));
+            if (filters.contains(fileExtension))
+                files << filepath;
+        } else {
+            qInfo().noquote() << tr("Found directory: %1 in: %2. Looking into it...").arg(entry, dir);
+            files << findFiles(filepath, filters);
+        }
+    }
+
+    if (!files.isEmpty()) {
+        qInfo().noquote() << tr("Loaded all music files from directory: %1.").arg(dir);
+    }
+
+    return files;
+}
+
+QStringList MainWindow::openFiles(bool justFiles)
 {
     auto dir = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     QString filters = tr("Audio files (");
@@ -430,17 +459,39 @@ void MainWindow::onOpenFilesActionRequested()
 
     filters = QString("%1)").arg(filters.trimmed());
 
-    auto playlist = QFileDialog::getOpenFileNames(this,
-                                               tr("Open Audio Files"),
-                                               dir,
-                                               filters
-                                               );
+    if (justFiles)
+        return QFileDialog::getOpenFileNames(this,
+                                             tr("Open Audio Files"),
+                                             dir,
+                                             filters
+                                             );
+
+    dir = QFileDialog::getExistingDirectory(this, tr("Open Music Directory"), dir);
+    if (dir.isEmpty())
+        return {};
+
+    filters = filters
+                  .mid(filters.indexOf('(') + 1)
+                  .replace(")", "")
+                  .replace("*", "");
+    auto files = findFiles(dir, filters.split(' '));
+    if (not files.isEmpty() and m_ui->playlistLabel->text().contains(tr("Unnamed"))) {
+        auto playlistName = dir.mid(dir.lastIndexOf('/') + 1);
+        m_ui->playlistLabel->setText(tr("Playlist: %1*").arg(playlistName));
+        m_ui->playlistLabel->setToolTip(tr("Playlist is currently not saved."));
+    }
+
+    return files;
+}
+
+void MainWindow::onOpenFilesActionRequested()
+{
+    bool wasPlaylistEmpty = m_playlist.isEmpty();
+    QStringList playlist = openFiles(sender() == m_ui->actionOpenFiles);
 
     if (playlist.isEmpty()) {
         return;
     }
-
-    bool wasPlaylistEmpty = m_playlist.isEmpty();
 
     m_playlist << playlist;
 
@@ -505,6 +556,7 @@ void MainWindow::loadPlaylist(const QString &playlistName)
     m_playlistSettings->endGroup(); /* playlist */
 
     m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlistName));
+    m_ui->playlistLabel->setToolTip("");
     m_ui->playlistWidget->setCurrentRow(0);
     m_ui->playingEdit->setText(musicName(m_playlist[0]));
 
@@ -528,12 +580,13 @@ void MainWindow::onClosePlayListActionRequested()
     m_player.clearSource();
     m_playlist.clear();
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+    m_ui->playlistLabel->setToolTip("");
     m_currentPlaylistName.clear();
     m_ui->playlistWidget->clear();
     m_ui->playingEdit->setText("");
     m_ui->playButton->setText(tr("Play"));
     m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
-    m_ui->durationLabel->setText("0/0");
+    m_ui->durationLabel->setText("00:00:00");
     m_ui->seekMusicSlider->setValue(0);
 }
 
@@ -572,6 +625,8 @@ void MainWindow::onSavePlayListActionRequested()
 
         name = m_ui->playlistLabel->text();
         name = name.mid(name.indexOf(':') + 2);
+        if (name.endsWith('*'))
+            name = name.mid(0, name.lastIndexOf('*'));
         updated = true;
     }
 
@@ -602,6 +657,7 @@ void MainWindow::onSavePlayListActionRequested()
                        ? tr("Playlist %1 has been updated!").arg(name)
                        : tr("Now you can play all the awesome music %1 has!").arg(name);
 
+    m_ui->playlistLabel->setToolTip("");
     QMessageBox::information(this, tr("Yay!"), message);
 }
 
@@ -694,7 +750,7 @@ void MainWindow::onPreviousButtonClicked()
         int index = m_ui->playlistWidget->currentRow() - 1;
         m_ui->playlistWidget->setCurrentRow(index);
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
-    } // No need to warn because player emits a warning signal and it's caught by this class.
+    } /* No need to warn because player emits a warning signal and it's caught by this class. */
 }
 
 void MainWindow::onNextButtonClicked()
@@ -809,7 +865,8 @@ void MainWindow::about()
 <h1>%1 %2</h1>\
 <p>License: %3<br>\
 Authors: %4<br>\
-Build Date: %5</p>").arg(PROJECT_NAME, PROJECT_VERSION, PROJECT_LICENSE, AUTHORS, BUILD_DATETIME);
+<a href=\"%5\">Main Page</a><br>\
+Build Date: %6</p>").arg(PROJECT_NAME, PROJECT_VERSION, PROJECT_LICENSE, AUTHORS, PROJECT_WEBPAGE, BUILD_DATETIME);
     QMessageBox messageBox;
     messageBox.setWindowTitle(tr("About - %1").arg(PROJECT_NAME));
     messageBox.setTextFormat(Qt::RichText);
