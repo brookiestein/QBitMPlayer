@@ -19,6 +19,7 @@ public:
     /* Useful when in the command line. */
     void setAutoPlay(bool autoPlay);
     const QString &currentMusicFilename() const;
+    qint64 currentPosition() const;
 
 public slots:
     void setVolume(float volume);

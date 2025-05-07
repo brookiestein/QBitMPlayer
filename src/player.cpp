@@ -53,6 +53,11 @@ const QString &Player::currentMusicFilename() const
     return m_currentMusicFilename;
 }
 
+qint64 Player::currentPosition() const
+{
+    return m_mediaPlayer->position();
+}
+
 void Player::setPlayList(const QStringList &playlist)
 {
     m_playlist = playlist;

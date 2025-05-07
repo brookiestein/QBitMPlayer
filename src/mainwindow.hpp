@@ -58,6 +58,10 @@ private:
     qint8 m_minutes;
     qint8 m_seconds;
 
+    // Pausing seems not to actually pause, let's save the current position before pausing
+    // in order to seek the player there when the user click continue.
+    qint64 m_currentPosition;
+
     enum class AUTOREPEAT { NONE = 0, ONE, ALL };
     AUTOREPEAT m_autorepeat = AUTOREPEAT::NONE;
 

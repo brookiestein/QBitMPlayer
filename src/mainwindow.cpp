@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_increaseVolumeBy10Shortcut {new QShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_Up), this)}
     , m_decreaseVolumeBy5Shortcut {new QShortcut(QKeySequence(Qt::Key_Down), this)}
     , m_decreaseVolumeBy10Shortcut {new QShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_Down), this)}
+    , m_currentPosition(0)
 {
     m_ui->setupUi(this);
 
@@ -474,7 +475,9 @@ QStringList MainWindow::openFiles(bool justFiles)
                   .mid(filters.indexOf('(') + 1)
                   .replace(")", "")
                   .replace("*", "");
+
     auto files = findFiles(dir, filters.split(' '));
+
     if (not files.isEmpty() and m_ui->playlistLabel->text().contains(tr("Unnamed"))) {
         auto playlistName = dir.mid(dir.lastIndexOf('/') + 1);
         m_ui->playlistLabel->setText(tr("Playlist: %1*").arg(playlistName));
@@ -721,14 +724,19 @@ void MainWindow::onPlayButtonClicked()
             return;
         }
 
+        m_player.seek(m_currentPosition);
         m_player.play();
         snder->setText(tr("Pause"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+        m_currentPosition = 0;
     } else if (not snder->text().contains(tr("Pause"))) {
+        m_player.seek(m_currentPosition);
         m_player.play();
         snder->setText(tr("Pause"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+        m_currentPosition = 0;
     } else {
+        m_currentPosition = m_player.currentPosition();
         m_player.pause();
         snder->setText(tr("Continue"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
