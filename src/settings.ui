@@ -33,7 +33,7 @@
      <property name="elideMode">
       <enum>Qt::TextElideMode::ElideNone</enum>
      </property>
-     <widget class="QWidget" name="windowPage">
+     <widget class="QWidget" name="windowTab">
       <property name="font">
        <font>
         <pointsize>10</pointsize>
@@ -120,6 +120,18 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="minimizeToSystrayCheckBox">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Minimize to systray instead of completely closing</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer_5">
              <property name="orientation">
               <enum>Qt::Orientation::Horizontal</enum>
@@ -198,7 +210,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="audioPage">
+     <widget class="QWidget" name="audioTab">
       <attribute name="title">
        <string>Audio</string>
       </attribute>
@@ -302,7 +314,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="playlistTab">
       <attribute name="title">
        <string>Playlist</string>
       </attribute>

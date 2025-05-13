@@ -36,6 +36,7 @@ private slots:
     void checkForChange();
     void onRememberWindowSizeChecked(Qt::CheckState state);
     void onAlwaysMaximizedChecked(Qt::CheckState state);
+    void onMinimizeToSystrayChecked(Qt::CheckState state);
     void onRememberVolumeLevelChecked(Qt::CheckState state);
     void applyChanges();
 

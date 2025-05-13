@@ -8,7 +8,9 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QShortcut>
+#include <QShowEvent>
 #include <QStandardPaths>
+#include <QSystemTrayIcon>
 
 #include "config.hpp"
 #include "player.hpp"
@@ -39,9 +41,11 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private:
     Ui::MainWindow *m_ui;
+    QSystemTrayIcon m_systray;
     QAction *m_addSongToPlaylist;
     QAction *m_removeSongAction;
 
@@ -101,11 +105,11 @@ private slots:
     void onSavePlayListActionRequested();
     void onRemovePlayListActionRequested();
     void onOpenSettings();
-    void playShortcutHelper();
+    void playPauseHelper();
     void onPlayButtonClicked();
-    void onStopActionRequested();
-    void onPreviousButtonClicked();
-    void onNextButtonClicked();
+    void onStopPlayer();
+    void onPlayPrevious();
+    void onPlayNext();
     void onAutoRepeatButtonClicked();
     void onSeekSliderPressed();
     void onSeekSliderReleased();

@@ -20,6 +20,8 @@ public:
     void setAutoPlay(bool autoPlay);
     const QString &currentMusicFilename() const;
     qint64 currentPosition() const;
+    qint64 currentIndex() const;
+    bool isPlaying() const;
 
 public slots:
     void setVolume(float volume);

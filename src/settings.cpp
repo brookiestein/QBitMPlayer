@@ -41,6 +41,11 @@ Settings::Settings(QWidget *parent)
         tr("If checked, window will always be opened maximized.")
     );
 
+    m_ui->minimizeToSystrayCheckBox->setToolTip(
+        tr("If checked, the player will be minimized to the system tray "
+           "when asking to close, for example, by pressing the close button.")
+    );
+
     m_playlistSettings = new QSettings(
         createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
         QSettings::IniFormat,
@@ -58,6 +63,9 @@ Settings::Settings(QWidget *parent)
 
     state = m_settings->value("AlwaysMaximized", false).toBool() ? Qt::Checked : Qt::Unchecked;
     m_ui->alwaysMaximizedCheckBox->setCheckState(state);
+
+    state = m_settings->value("MinimizeToSystray", false).toBool() ? Qt::Checked : Qt::Unchecked;
+    m_ui->minimizeToSystrayCheckBox->setCheckState(state);
 
     /* AlwaysMaximized state overwrites Centered */
     if (m_ui->alwaysMaximizedCheckBox->isChecked()) {
@@ -115,6 +123,13 @@ Settings::Settings(QWidget *parent)
         &QCheckBox::checkStateChanged,
         this,
         &Settings::onAlwaysMaximizedChecked
+    );
+
+    connect(
+        m_ui->minimizeToSystrayCheckBox,
+        &QCheckBox::checkStateChanged,
+        this,
+        &Settings::onMinimizeToSystrayChecked
     );
 
     connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
@@ -242,6 +257,7 @@ void Settings::setInitialValues()
     m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] = m_ui->rememberWindowSizeCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->centeredCheckBox] = m_ui->centeredCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] = m_ui->alwaysMaximizedCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] = m_ui->minimizeToSystrayCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
 
     m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
@@ -268,6 +284,12 @@ void Settings::checkForChange()
     }
 
     if (m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] != m_ui->alwaysMaximizedCheckBox->isChecked()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] != m_ui->minimizeToSystrayCheckBox->isChecked()) {
         m_ui->applyWindowSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
@@ -367,6 +389,11 @@ void Settings::onAlwaysMaximizedChecked(Qt::CheckState state)
     checkForChange();
 }
 
+void Settings::onMinimizeToSystrayChecked(Qt::CheckState state)
+{
+    checkForChange();
+}
+
 void Settings::onRememberVolumeLevelChecked(Qt::CheckState state)
 {
     switch (state)
@@ -393,6 +420,7 @@ void Settings::applyChanges()
     bool rememberWindowSize = m_ui->rememberWindowSizeCheckBox->isChecked();
     bool centered = m_ui->centeredCheckBox->isChecked();
     bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
+    bool minimizeToSystray = m_ui->minimizeToSystrayCheckBox->isChecked();
     bool rememberVolumeLevel = m_ui->rememberVolumeLevelCheckBox->isChecked();
     int width {-1};
     int height {-1};
@@ -451,6 +479,7 @@ void Settings::applyChanges()
     m_settings->setValue("RememberWindowSize", rememberWindowSize);
     m_settings->setValue("Centered", centered);
     m_settings->setValue("AlwaysMaximized", alwaysMaximized);
+    m_settings->setValue("MinimizeToSystray", minimizeToSystray);
     if (width >= 0)
         m_settings->setValue("Width", width);
     if (height >= 0)

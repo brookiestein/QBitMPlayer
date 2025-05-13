@@ -58,6 +58,16 @@ qint64 Player::currentPosition() const
     return m_mediaPlayer->position();
 }
 
+qint64 Player::currentIndex() const
+{
+    return m_currentMusicIndex;
+}
+
+bool Player::isPlaying() const
+{
+    return m_mediaPlayer->isPlaying();
+}
+
 void Player::setPlayList(const QStringList &playlist)
 {
     m_playlist = playlist;

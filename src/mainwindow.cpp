@@ -19,6 +19,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui {new Ui::MainWindow}
+    , m_systray(QIcon::fromTheme(QIcon::ThemeIcon::DocumentPrint), this)
     , m_canModifySlider {true}
     , m_quitShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_Q), this)}
     , m_openFilesShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_O), this)}
@@ -112,9 +113,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->seekMusicSlider, &QSlider::sliderPressed, this, &MainWindow::onSeekSliderPressed);
     connect(m_ui->seekMusicSlider, &QSlider::sliderReleased, this, &MainWindow::onSeekSliderReleased);
     connect(m_ui->playButton, &QPushButton::clicked, this, &MainWindow::onPlayButtonClicked);
-    connect(m_ui->stopButton, &QPushButton::clicked, this, &MainWindow::onStopActionRequested);
-    connect(m_ui->previousButton, &QPushButton::clicked, this, &MainWindow::onPreviousButtonClicked);
-    connect(m_ui->nextButton, &QPushButton::clicked, this, &MainWindow::onNextButtonClicked);
+    connect(m_ui->stopButton, &QPushButton::clicked, this, &MainWindow::onStopPlayer);
+    connect(m_ui->previousButton, &QPushButton::clicked, this, &MainWindow::onPlayPrevious);
+    connect(m_ui->nextButton, &QPushButton::clicked, this, &MainWindow::onPlayNext);
     connect(m_ui->autoRepeatButton, &QPushButton::clicked, this, &MainWindow::onAutoRepeatButtonClicked);
     connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeSliderValueChanged);
     connect(m_ui->volumeIconButton, &QPushButton::clicked, this, &MainWindow::onVolumeIconButtonClicked);
@@ -128,11 +129,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_savePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_removePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onRemovePlayListActionRequested);
     connect(m_settingsShortcut, &QShortcut::activated, this, &MainWindow::onOpenSettings);
-    connect(m_playShortcut, &QShortcut::activated, this, &MainWindow::playShortcutHelper);
-    connect(m_playShortcut2, &QShortcut::activated, this, &MainWindow::playShortcutHelper);
-    connect(m_stopShortcut, &QShortcut::activated, this, &MainWindow::onStopActionRequested);
-    connect(m_previousShortcut, &QShortcut::activated, this, &MainWindow::onPreviousButtonClicked);
-    connect(m_nextShortcut, &QShortcut::activated, this, &MainWindow::onNextButtonClicked);
+    connect(m_playShortcut, &QShortcut::activated, this, &MainWindow::playPauseHelper);
+    connect(m_playShortcut2, &QShortcut::activated, this, &MainWindow::playPauseHelper);
+    connect(m_stopShortcut, &QShortcut::activated, this, &MainWindow::onStopPlayer);
+    connect(m_previousShortcut, &QShortcut::activated, this, &MainWindow::onPlayPrevious);
+    connect(m_nextShortcut, &QShortcut::activated, this, &MainWindow::onPlayNext);
     connect(m_autorepeatShortcut, &QShortcut::activated, this, &MainWindow::onAutoRepeatButtonClicked);
     connect(m_increaseVolumeBy5Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeIncrease);
     connect(m_increaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeIncrease);
@@ -153,6 +154,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         m_settings->setValue("Height", geometry().height());
         m_settings->setValue("Maximized", isMaximized());
     }
+    auto minimizeToSystray = m_settings->value("MinimizeToSystray", false).toBool();
     m_settings->endGroup();
 
     m_settings->beginGroup("AudioSettings");
@@ -161,7 +163,106 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     m_settings->endGroup();
 
-    QMainWindow::closeEvent(event);
+    if (minimizeToSystray) {
+        hide();
+        event->accept();
+    } else {
+        QMainWindow::closeEvent(event);
+    }
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    auto *hideShowAction = new QAction(isVisible() ? tr("Hide") : tr("Show"), this);
+
+    auto *playPauseAction = new QAction(
+        m_player.isPlaying()
+            ? QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause)
+            : QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart),
+        m_player.isPlaying() ? tr("Pause") : tr("Play"),
+        this
+        );
+
+    auto *stopAction = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStop),
+        tr("Stop"),
+        this
+        );
+
+    auto *previousAction = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::MediaSeekBackward),
+        tr("Previous"),
+        this
+    );
+
+    auto *nextAction = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::MediaSeekForward),
+        tr("Next"),
+        this
+    );
+
+    auto *exitAction = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::WindowClose),
+        tr("Exit"),
+        this
+        );
+
+    auto *systrayMenu = new QMenu(this);
+
+    systrayMenu->addAction(hideShowAction);
+    systrayMenu->addSeparator();
+
+    systrayMenu->addActions({
+        playPauseAction,
+        stopAction,
+        previousAction,
+        nextAction
+    });
+    systrayMenu->addSeparator();
+
+    systrayMenu->addAction(exitAction);
+    m_systray.setContextMenu(systrayMenu);
+
+    // TEST this feature.
+    connect(hideShowAction, &QAction::triggered, this, [this, &hideShowAction] ([[maybe_unused]] bool checked) {
+        if (isVisible()) {
+            show();
+            hideShowAction->setText(tr("Hide"));
+        } else {
+            hide();
+            hideShowAction->setText(tr("Show"));
+        }
+    });
+
+    connect(playPauseAction, &QAction::triggered, this, &MainWindow::playPauseHelper);
+    connect(stopAction, &QAction::triggered, this, &MainWindow::onStopPlayer);
+    connect(previousAction, &QAction::triggered, this, &MainWindow::onPlayPrevious);
+    connect(nextAction, &QAction::triggered, this, &MainWindow::onPlayNext);
+    connect(exitAction, &QAction::triggered, this, &MainWindow::onQuit);
+
+    connect(
+        &m_systray,
+        &QSystemTrayIcon::activated,
+        this,
+        [this, &hideShowAction] (QSystemTrayIcon::ActivationReason reason) {
+            switch (reason)
+            {
+            case QSystemTrayIcon::Unknown:
+                break;
+            case QSystemTrayIcon::Context:
+                break;
+            case QSystemTrayIcon::DoubleClick:
+                break;
+            case QSystemTrayIcon::Trigger:
+                break;
+            case QSystemTrayIcon::MiddleClick:
+                hideShowAction->trigger();
+                break;
+            }
+        });
+
+    m_systray.show();
+    event->ignore(); // Let QMainWindow do its stuff.
 }
 
 void MainWindow::onQuit()
@@ -490,7 +591,7 @@ QStringList MainWindow::openFiles(bool justFiles)
 void MainWindow::onOpenFilesActionRequested()
 {
     bool wasPlaylistEmpty = m_playlist.isEmpty();
-    QStringList playlist = openFiles(sender() == m_ui->actionOpenFiles);
+    QStringList playlist = openFiles(sender() != m_ui->actionOpen_Directory);
 
     if (playlist.isEmpty()) {
         return;
@@ -700,7 +801,7 @@ void MainWindow::onOpenSettings()
     loop.exec();
 }
 
-void MainWindow::playShortcutHelper()
+void MainWindow::playPauseHelper()
 {
     if (m_ui->playingEdit->text().isEmpty()) {
         return;
@@ -743,7 +844,7 @@ void MainWindow::onPlayButtonClicked()
     }
 }
 
-void MainWindow::onStopActionRequested()
+void MainWindow::onStopPlayer()
 {
     m_player.stop();
     if (m_ui->playButton->text() != tr("&Play")) {
@@ -752,19 +853,19 @@ void MainWindow::onStopActionRequested()
     }
 }
 
-void MainWindow::onPreviousButtonClicked()
+void MainWindow::onPlayPrevious()
 {
     if (m_player.playPrevious()) {
-        int index = m_ui->playlistWidget->currentRow() - 1;
+        int index = m_player.currentIndex();
         m_ui->playlistWidget->setCurrentRow(index);
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
     } /* No need to warn because player emits a warning signal and it's caught by this class. */
 }
 
-void MainWindow::onNextButtonClicked()
+void MainWindow::onPlayNext()
 {
     if (m_player.playNext()) {
-        int index = m_ui->playlistWidget->currentRow() + 1;
+        int index = m_player.currentIndex();
         m_ui->playlistWidget->setCurrentRow(index);
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
         m_ui->playButton->setText(tr("Pause"));
@@ -874,6 +975,8 @@ void MainWindow::about()
 <p>License: %3<br>\
 Authors: %4<br>\
 <a href=\"%5\">Main Page</a><br>\
+<a href=\"https://buymeacoffee.com/brayan0x1e\">Buy me a coffee</a><br>\
+<a href=\"mailto:this.brayan@proton.me\">Contact me</a><br>\
 Build Date: %6</p>").arg(PROJECT_NAME, PROJECT_VERSION, PROJECT_LICENSE, AUTHORS, PROJECT_WEBPAGE, BUILD_DATETIME);
     QMessageBox messageBox;
     messageBox.setWindowTitle(tr("About - %1").arg(PROJECT_NAME));
