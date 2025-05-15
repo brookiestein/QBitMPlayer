@@ -11,6 +11,11 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QShortcut>
+#ifdef USE_SPOTIFY
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#endif
 
 #include "config.hpp"
 #include "playlistchooser.hpp"
@@ -128,11 +133,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->localPlaylistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onLocalPlaylistItemDoubleClicked);
     connect(m_ui->openFilesButton, &QPushButton::clicked, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionOpenPlaylist, &QAction::triggered, this, &MainWindow::onOpenPlayListActionRequested);
-    connect(m_ui->actionClosePlaylist, &QAction::triggered, this, &MainWindow::onClosePlayListActionRequested);
+    connect(m_ui->actionClosePlaylist, &QAction::triggered, this, &MainWindow::onClosePlaylistHelper);
     connect(m_ui->actionSavePlaylist, &QAction::triggered, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_ui->actionRemovePlaylist, &QAction::triggered, this, &MainWindow::onRemovePlayListActionRequested);
     connect(m_ui->openPlaylistButton, &QPushButton::clicked, this, &MainWindow::onOpenPlayListActionRequested);
-    connect(m_ui->closePlayListButton, &QPushButton::clicked, this, &MainWindow::onClosePlayListActionRequested);
+    connect(m_ui->closePlayListButton, &QPushButton::clicked, this, &MainWindow::onClosePlaylistHelper);
     connect(m_ui->savePlaylistButton, &QPushButton::clicked, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_ui->removePlaylistButton, &QPushButton::clicked, this, &MainWindow::onRemovePlayListActionRequested);
 #ifdef USE_SPOTIFY
@@ -154,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_openFilesShortcut, &QShortcut::activated, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_openDirectoryShortcut, &QShortcut::activated, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_openPlaylistShortcut, &QShortcut::activated, this, &MainWindow::onOpenPlayListActionRequested);
-    connect(m_closePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onClosePlayListActionRequested);
+    connect(m_closePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onClosePlaylistHelper);
     connect(m_savePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_removePlaylistShortcut, &QShortcut::activated, this, &MainWindow::onRemovePlayListActionRequested);
     connect(m_settingsShortcut, &QShortcut::activated, this, &MainWindow::onOpenSettings);
@@ -730,10 +735,10 @@ void MainWindow::loadPlaylist(const QString &playlistName, PLAYLIST_TYPE playlis
 {
 #ifdef USE_SPOTIFY
     if (playlistType == PLAYLIST_TYPE::SPOTIFY) {
-        onClosePlayListActionRequested();
-        QStringList tracksName = m_spotifyManager->tracks();
+        onClosePlayListActionRequested(playlistType);
+        auto chosenPlaylist = m_spotifyManager->chosenPlaylist();
 
-        if (tracksName.isEmpty()) {
+        if (chosenPlaylist.empty()) {
             QMessageBox::warning(
                 this,
                 tr("Playlist Empty"),
@@ -742,7 +747,32 @@ void MainWindow::loadPlaylist(const QString &playlistName, PLAYLIST_TYPE playlis
             return;
         }
 
-        m_ui->spotifyListWidget->addItems(tracksName);
+        auto images = m_spotifyManager->images();
+
+        for (const auto &id : images.keys()) {
+            auto songName = chosenPlaylist[id];
+            QEventLoop loop;
+            QUrl url(images[id]);
+            QNetworkAccessManager manager;
+            QNetworkRequest request(url);
+            auto *reply = manager.get(request);
+
+            connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &songName] () {
+                QByteArray data = reply->readAll();
+                QPixmap pixmap;
+                if (pixmap.loadFromData(data)) {
+                    m_ui->spotifyListWidget->addItem(
+                        new QListWidgetItem(QIcon(pixmap), songName)
+                    );
+                } else {
+                    m_ui->spotifyListWidget->addItem(songName);
+                }
+                reply->deleteLater();
+            });
+
+            connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
 
         m_player.setPlaylist(m_spotifyManager->chosenPlaylist());
         m_player.setSpotifyCurrent(0);
@@ -809,14 +839,53 @@ void MainWindow::setVolumeIcon()
     }
 }
 
-void MainWindow::onClosePlayListActionRequested()
+void MainWindow::onClosePlaylistHelper()
+{
+    onClosePlayListActionRequested(
+        m_ui->playlistTabWidget->currentIndex() == 0
+            ? PLAYLIST_TYPE::LOCAL
+            : PLAYLIST_TYPE::SPOTIFY
+    );
+}
+
+void MainWindow::onClosePlayListActionRequested(PLAYLIST_TYPE type)
 {
     m_player.clearSource();
-    m_playlist.clear();
-    m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
-    m_ui->playlistLabel->setToolTip("");
-    m_currentPlaylistName.clear();
-    m_ui->localPlaylistWidget->clear();
+
+    if (type == PLAYLIST_TYPE::LOCAL) {
+        m_ui->localPlaylistWidget->clear();
+        m_playlist.clear();
+        m_currentPlaylistName.clear();
+
+#ifdef USE_SPOTIFY
+        if (m_SpotifyCurrentPlaylistName.isEmpty()) {
+            m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+            m_ui->playlistLabel->setToolTip("");
+        } else {
+            m_ui->playlistLabel->setText(tr("Playlist: %1 - Spotify").arg(m_SpotifyCurrentPlaylistName));
+        }
+#endif
+    } else {
+#ifndef USE_SPOTIFY
+        QMessageBox::critical(
+            this,
+            tr("Error"),
+            tr(PROJECT_NAME " wasn't built with Spotify support.")
+        );
+        return;
+#else
+        if (m_currentPlaylistName.isEmpty()) {
+            m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+            m_ui->playlistLabel->setToolTip("");
+        } else {
+            m_ui->playlistLabel->setText(tr("Playlist: %1").arg(m_currentPlaylistName));
+        }
+#endif
+        m_ui->spotifyListWidget->clear();
+        m_spotifyPlaylist.clear();
+        m_SpotifyCurrentPlaylistName.clear();
+    }
+
     m_ui->playingEdit->setText("");
     m_ui->playButton->setText(tr("Play"));
     m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));

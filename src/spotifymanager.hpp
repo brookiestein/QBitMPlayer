@@ -22,8 +22,10 @@ class SpotifyManager : public QObject
     QString m_accountType;
     // playlistID -> playlistName
     std::map<QString, QString> m_playlists;
-    // trackID -> trackName
+    // playlistID -> trackName
     std::map<QString, QString> m_chosenPlaylist;
+    // trackID -> imageURL
+    QMap<QString, QString> m_images;
 
     void generateCodeVerifier(int length);
     void generateCodeChallenge();
@@ -45,6 +47,7 @@ public:
     std::map<QString, QString> fetchTracks(const QString &playlistName);
     std::map<QString, QString> chosenPlaylist() const;
     QStringList tracks() const;
+    QMap<QString, QString> images() const;
 signals:
     void information(const QString &message);
     void errorOccurred(const QString &reason);

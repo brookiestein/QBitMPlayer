@@ -113,7 +113,8 @@ private slots:
     QStringList openFiles(bool justFiles = true);
     void onOpenFilesActionRequested();
     void onOpenPlayListActionRequested();
-    void onClosePlayListActionRequested();
+    void onClosePlaylistHelper();
+    void onClosePlayListActionRequested(PLAYLIST_TYPE type = PLAYLIST_TYPE::LOCAL);
     void onSavePlayListActionRequested();
     void onRemovePlayListActionRequested();
 #ifdef USE_SPOTIFY

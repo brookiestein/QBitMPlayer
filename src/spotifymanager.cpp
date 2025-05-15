@@ -254,18 +254,45 @@ std::map<QString, QString> SpotifyManager::fetchTracks(const QString &playlistNa
 
     request.setRawHeader("Authorization", "Bearer " + m_accessToken.toUtf8());
 
+    m_chosenPlaylist.clear();
+    m_images.clear();
+
     QEventLoop loop;
     QNetworkAccessManager manager;
+
+    auto fetchImage = [this, &manager] (const QString &trackID) -> QString {
+        QString imageURL {};
+        QEventLoop loop;
+        QNetworkRequest request(QUrl(QString("https://api.spotify.com/v1/tracks/%1").arg(trackID)));
+        request.setRawHeader("Authorization", "Bearer " + m_accessToken.toUtf8());
+        auto *reply = manager.get(request);
+
+        connect(reply, &QNetworkReply::readyRead, this, [&imageURL, &reply] () {
+            auto response = QJsonDocument::fromJson(reply->readAll());
+            auto images = response["album"]["images"].toArray();
+            imageURL = images.at(2)["url"].toString();
+            reply->deleteLater();
+        });
+
+        connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
+        loop.exec();
+
+        return imageURL;
+    };
+
     auto *reply = manager.get(request);
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &fetchImage] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
         auto items = response["items"].toArray();
 
         for (qsizetype i {}, size = items.size(); i < size; ++i) {
             auto track = items.at(i)["track"].toObject();
 
-            m_chosenPlaylist[track["id"].toString()] = track["name"].toString();
+            auto trackID = track["id"].toString();
+            m_chosenPlaylist[trackID] = track["name"].toString();
+
+            m_images[trackID] = fetchImage(trackID);
         }
     });
 
@@ -288,6 +315,11 @@ QStringList SpotifyManager::tracks() const
     for (const auto &[id, name] : m_chosenPlaylist)
         tracksName << name;
     return tracksName;
+}
+
+QMap<QString, QString> SpotifyManager::images() const
+{
+    return m_images;
 }
 
 void SpotifyManager::handleNetworkError(QNetworkReply::NetworkError error)
