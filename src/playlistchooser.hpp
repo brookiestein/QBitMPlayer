@@ -34,6 +34,10 @@ protected:
 
 private slots:
     void onItemDoubleClicked(int row, int column);
+#ifdef USE_SPOTIFY
+public slots:
+    void playlistsFetched();
+#endif
 
 signals:
     void closed();

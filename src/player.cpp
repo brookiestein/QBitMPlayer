@@ -6,8 +6,9 @@ Player::Player(const QStringList &playlist, QObject *parent)
     : QObject{parent}
     , m_audioOutput(new QAudioOutput(this))
     , m_mediaPlayer(new QMediaPlayer(this))
-    , m_playlist(playlist)
+    , m_localPlaylist(playlist)
     , m_currentMusicIndex(-1)
+    , m_spotifyCurrentMusicIndex(-1)
     , m_autoplay(false)
 {
     m_mediaPlayer->setAudioOutput(m_audioOutput);
@@ -19,28 +20,28 @@ Player::Player(const QStringList &playlist, QObject *parent)
 
 bool Player::hasNext()
 {
-    return m_currentMusicIndex < m_playlist.size();
+    return m_currentMusicIndex < m_localPlaylist.size();
 }
 
 void Player::setCurrent(const QString &musicFile)
 {
     m_mediaPlayer->setSource(QUrl::fromLocalFile(musicFile));
     m_currentMusicFilename = musicFile;
-    if (m_playlist.contains(musicFile)) {
-        m_currentMusicIndex = m_playlist.indexOf(musicFile);
+    if (m_localPlaylist.contains(musicFile)) {
+        m_currentMusicIndex = m_localPlaylist.indexOf(musicFile);
     }
 }
 
 void Player::setCurrent(qint64 index)
 {
-    if (index < 0 or index >= m_playlist.size()) {
+    if (index < 0 or index >= m_localPlaylist.size()) {
         emit error(tr("There's no such music at index: %1.").arg(index));
         return;
     }
 
     m_currentMusicIndex = index;
-    m_mediaPlayer->setSource(QUrl::fromLocalFile(m_playlist[index]));
-    m_currentMusicFilename = m_playlist[index];
+    m_mediaPlayer->setSource(QUrl::fromLocalFile(m_localPlaylist[index]));
+    m_currentMusicFilename = m_localPlaylist[index];
 }
 
 void Player::setAutoPlay(bool autoPlay)
@@ -70,13 +71,20 @@ bool Player::isPlaying() const
 
 void Player::setPlayList(const QStringList &playlist)
 {
-    m_playlist = playlist;
+    m_localPlaylist = playlist;
 }
 
+#ifdef USE_SPOTIFY
 void Player::setPlaylist(const std::map<QString, QString> &playlist)
 {
     m_spotifyPlaylist = playlist;
 }
+
+void Player::setSpotifyCurrent(qint64 index)
+{
+    m_spotifyCurrentMusicIndex = index;
+}
+#endif
 
 void Player::setVolume(float volume)
 {
@@ -118,7 +126,7 @@ bool Player::playPrevious()
     }
 
     --m_currentMusicIndex;
-    auto music = m_playlist[m_currentMusicIndex];
+    auto music = m_localPlaylist[m_currentMusicIndex];
     setCurrent(music);
     play();
     return true;
@@ -132,7 +140,7 @@ bool Player::playNext()
         return false;
     }
 
-    auto music = m_playlist[m_currentMusicIndex];
+    auto music = m_localPlaylist[m_currentMusicIndex];
     setCurrent(music);
     play();
     return true;

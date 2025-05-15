@@ -14,9 +14,11 @@ class Player : public QObject
 
 public:
     explicit Player(const QStringList &playlist = QStringList(), QObject *parent = nullptr);
+    enum class PLAYING_FROM { LOCALFILE = 0, SPOTIFY };
     void setPlayList(const QStringList &playlist);
 #ifdef USE_SPOTIFY
     void setPlaylist(const std::map<QString, QString> &playlist);
+    void setSpotifyCurrent(qint64 index);
 #endif
     void setCurrent(qint64 index);
     /* Useful when in the command line. */
@@ -50,15 +52,17 @@ signals:
     void finished();
 
 private:
-    QStringList m_playlist;
+    QStringList m_localPlaylist;
 #ifdef USE_SPOTIFY
     std::map<QString, QString> m_spotifyPlaylist;
 #endif
     qint64 m_currentMusicIndex;
+    qint64 m_spotifyCurrentMusicIndex;
     QString m_currentMusicFilename;
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
     bool m_autoplay;
+    PLAYING_FROM m_playingFrom;
 };
 
 #endif // PLAYER_HPP

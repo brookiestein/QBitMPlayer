@@ -23,9 +23,6 @@ SpotifyManager::SpotifyManager(QSettings *settings, QObject *parent)
     m_accessToken = m_settings->value("AccessToken", "").toString();
     m_userID = m_settings->value("UserID", "").toString();
     m_settings->endGroup();
-
-    if (not m_accessToken.isEmpty())
-        m_needsAuthentication = false;
 }
 
 bool SpotifyManager::isAuthenticationNeeded() const
@@ -141,6 +138,13 @@ void SpotifyManager::getAccessToken()
 
 void SpotifyManager::fetchProfile()
 {
+    if (m_accessToken.isEmpty())
+        return;
+
+    m_userID.clear();
+    m_displayName.clear();
+    m_accountType.clear();
+
     QNetworkRequest request(QUrl("https://api.spotify.com/v1/me"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", "Bearer " + m_accessToken.toUtf8());
@@ -148,6 +152,7 @@ void SpotifyManager::fetchProfile()
     QEventLoop loop;
     auto *reply = manager.get(request);
 
+    connect(reply, &QNetworkReply::errorOccurred, this, &SpotifyManager::handleNetworkError);
     connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
 
@@ -164,10 +169,18 @@ void SpotifyManager::fetchProfile()
 
     connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
     loop.exec();
+
+    if (not m_userID.isEmpty()) {
+        emit profileFetched();
+        m_needsAuthentication = false;
+    }
 }
 
 void SpotifyManager::fetchPlaylist()
 {
+    if (m_accessToken.isEmpty())
+        return;
+
     QNetworkRequest request(
         QUrl(
             QString("https://api.spotify.com/v1/users/%1/playlists").arg(m_userID)
@@ -176,10 +189,13 @@ void SpotifyManager::fetchPlaylist()
 
     request.setRawHeader("Authorization", "Bearer " + m_accessToken.toUtf8());
 
+    m_playlists.clear();
+
     QEventLoop loop;
     QNetworkAccessManager manager;
     auto *reply = manager.get(request);
 
+    connect(reply, &QNetworkReply::errorOccurred, this, &SpotifyManager::handleNetworkError);
     connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
         auto playlists = response["items"].toArray();
@@ -193,6 +209,9 @@ void SpotifyManager::fetchPlaylist()
     connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
 
     loop.exec();
+
+    if (not m_playlists.empty())
+        emit playlistsFetched();
 }
 
 QString SpotifyManager::displayName() const
@@ -210,7 +229,7 @@ std::map<QString, QString> SpotifyManager::playlists() const
     return m_playlists;
 }
 
-std::map<QString, QString> SpotifyManager::playlist(const QString &playlistName)
+std::map<QString, QString> SpotifyManager::fetchTracks(const QString &playlistName)
 {
     if (playlistName.isEmpty())
         return {};
@@ -219,7 +238,6 @@ std::map<QString, QString> SpotifyManager::playlist(const QString &playlistName)
         return {};
     }
 
-    std::map<QString, QString> playlist;
     QString playlistID {};
     for (const auto &[id, name] : m_playlists) {
         if (playlistName == name) {
@@ -240,19 +258,36 @@ std::map<QString, QString> SpotifyManager::playlist(const QString &playlistName)
     QNetworkAccessManager manager;
     auto *reply = manager.get(request);
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &playlist] () {
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
         auto items = response["items"].toArray();
-        qDebug().noquote() << response.toJson();
 
         for (qsizetype i {}, size = items.size(); i < size; ++i) {
-            auto object = items.at(i);
+            auto track = items.at(i)["track"].toObject();
 
-            playlist[object["id"].toString()] = object["name"].toString();
+            m_chosenPlaylist[track["id"].toString()] = track["name"].toString();
         }
     });
 
-    return playlist;
+    connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
+
+    loop.exec();
+
+    return m_chosenPlaylist;
+}
+
+std::map<QString, QString> SpotifyManager::chosenPlaylist() const
+{
+    return m_chosenPlaylist;
+}
+
+QStringList SpotifyManager::tracks() const
+{
+    QStringList tracksName;
+
+    for (const auto &[id, name] : m_chosenPlaylist)
+        tracksName << name;
+    return tracksName;
 }
 
 void SpotifyManager::handleNetworkError(QNetworkReply::NetworkError error)
@@ -271,7 +306,7 @@ void SpotifyManager::handleNetworkError(QNetworkReply::NetworkError error)
     case QNetworkReply::TimeoutError:
         emit errorOccurred(tr("Could not connect to spotify.com. Please make sure you have internet connection."));
         break;
-    case QNetworkReply::OperationCanceledError:
+    case QNetworkReply::OperationCanceledError: [[fallthrough]];
     case QNetworkReply::SslHandshakeFailedError:
     case QNetworkReply::TemporaryNetworkFailureError:
     case QNetworkReply::NetworkSessionFailedError:
@@ -289,13 +324,15 @@ void SpotifyManager::handleNetworkError(QNetworkReply::NetworkError error)
     case QNetworkReply::ContentOperationNotPermittedError:
     case QNetworkReply::ContentNotFoundError:
     case QNetworkReply::AuthenticationRequiredError:
+        m_needsAuthentication = true;
         emit needsAuthentication(
-            tr("Since this apps it's started, it's not possible to get a token for a longer time. "
-               "This will be fixed in the future. We're so sorry for this, just authorize the app again "
+            tr("Since this apps is just starting, Spotify limits the authentication token lifetime. "
+               "This will be fixed in the future as more users use the app. "
+               "We're so sorry for this, just authorize the app again "
                "in the link that will be opened after this message is closed.")
         );
         break;
-    case QNetworkReply::ContentReSendError:
+    case QNetworkReply::ContentReSendError: [[fallthrough]];
     case QNetworkReply::ContentConflictError:
     case QNetworkReply::ContentGoneError:
     case QNetworkReply::UnknownContentError:

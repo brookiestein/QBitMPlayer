@@ -28,6 +28,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    enum class PLAYLIST_TYPE { LOCAL = 0, SPOTIFY };
+
     void resetControls();
     QString musicName(const QString &filename);
 
@@ -39,7 +41,7 @@ public:
                                   + QDir::separator()
                                   + PROJECT_NAME
     );
-    void loadPlaylist(const QString &playlistName);
+    void loadPlaylist(const QString &playlistName, PLAYLIST_TYPE playlistType = PLAYLIST_TYPE::LOCAL);
     void setVolumeIcon();
 
 protected:
@@ -71,6 +73,8 @@ private:
 
 #ifdef USE_SPOTIFY
     SpotifyManager *m_spotifyManager;
+    QStringList m_spotifyPlaylist;
+    QString m_SpotifyCurrentPlaylistName;
 #endif
 
     enum class AUTOREPEAT { NONE = 0, ONE, ALL };
@@ -115,6 +119,8 @@ private slots:
 #ifdef USE_SPOTIFY
     void onAuthenticate();
     void needsAuthentication(const QString &message);
+    void profileFetched();
+    void onSpotifyPlaylistItemDoubleClicked(QListWidgetItem *item);
 #endif
     void onOpenSettings();
     void playPauseHelper();

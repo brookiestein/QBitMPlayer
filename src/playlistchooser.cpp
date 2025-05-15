@@ -1,5 +1,6 @@
 #include "playlistchooser.hpp"
 #include "ui_playlistchooser.h"
+#include "config.hpp"
 
 PlaylistChooser::PlaylistChooser(QSettings *settings, QWidget *parent)
     : QWidget(parent)
@@ -26,11 +27,9 @@ PlaylistChooser::PlaylistChooser(SpotifyManager *spotifyManager, QWidget *parent
     m_ui->setupUi(this);
 
     configureTable();
-    loadPlaylists(TYPE::SPOTIFY);
 
     connect(m_ui->tableWidget, &QTableWidget::cellDoubleClicked, this, &PlaylistChooser::onItemDoubleClicked);
     connect(m_quitShortcut, &QShortcut::activated, this, &QWidget::close);
-    m_spotifyManager->fetchPlaylist();
 }
 #endif
 
@@ -63,6 +62,13 @@ void PlaylistChooser::onItemDoubleClicked(int row, int column)
     close();
 }
 
+#ifdef USE_SPOTIFY
+void PlaylistChooser::playlistsFetched()
+{
+    loadPlaylists(TYPE::SPOTIFY);
+}
+#endif
+
 void PlaylistChooser::configureTable()
 {
     QStringList headers;
@@ -81,7 +87,7 @@ void PlaylistChooser::loadPlaylists(TYPE type)
 #ifndef USE_SPOTIFY
         emit errorOccurred(tr(PROJECT_NAME " wasn't build with Spotify support."));
         return;
-#endif
+#else
 
         auto playlists = m_spotifyManager->playlists();
         for (const auto &[id, name] : playlists) {
@@ -93,6 +99,7 @@ void PlaylistChooser::loadPlaylists(TYPE type)
             m_ui->tableWidget->setItem(rowCount, 0, item);
         }
         return;
+#endif
     }
 
     m_settings->beginGroup("Playlists");

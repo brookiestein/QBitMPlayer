@@ -20,7 +20,10 @@ class SpotifyManager : public QObject
     QString m_userID;
     QString m_displayName;
     QString m_accountType;
+    // playlistID -> playlistName
     std::map<QString, QString> m_playlists;
+    // trackID -> trackName
+    std::map<QString, QString> m_chosenPlaylist;
 
     void generateCodeVerifier(int length);
     void generateCodeChallenge();
@@ -36,13 +39,19 @@ public:
     QString challenge() const;
     QString displayName() const;
     QString accountType() const;
+    // playlistID -> playlistName
     std::map<QString, QString> playlists() const;
-    std::map<QString, QString> playlist(const QString &playlistName);
+    // trackID -> trackName
+    std::map<QString, QString> fetchTracks(const QString &playlistName);
+    std::map<QString, QString> chosenPlaylist() const;
+    QStringList tracks() const;
 signals:
     void information(const QString &message);
     void errorOccurred(const QString &reason);
     void hideAuthenticationButton();
     void needsAuthentication(const QString &message);
+    void profileFetched();
+    void playlistsFetched();
 private slots:
     void handleNetworkError(QNetworkReply::NetworkError error);
 };
