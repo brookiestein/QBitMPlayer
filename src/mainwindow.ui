@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>530</height>
+    <width>1151</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,62 @@
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="playlistWidget"/>
+         <widget class="QTabWidget" name="playlistTabWidget">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="localTab">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <attribute name="title">
+            <string>Local</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="0">
+             <widget class="QListWidget" name="localPlaylistWidget">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="spotifyTab">
+           <attribute name="title">
+            <string>Spotify</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="1" column="0">
+             <widget class="QListWidget" name="spotifyListWidget"/>
+            </item>
+            <item row="0" column="0">
+             <layout class="QHBoxLayout" name="spotifyUserInfoLayout">
+              <item>
+               <widget class="QLabel" name="spotifyNameLabel">
+                <property name="text">
+                 <string>Name:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="spotifyAccountTypeLabel">
+                <property name="text">
+                 <string>Account Type:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="playlistControlsHorizontalLayout">
@@ -73,6 +128,13 @@
             </property>
             <property name="icon">
              <iconset theme="QIcon::ThemeIcon::EditDelete"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="authenticateButton">
+            <property name="text">
+             <string>Authenticate</string>
             </property>
            </widget>
           </item>
@@ -265,8 +327,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1024</width>
-     <height>23</height>
+     <width>1151</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

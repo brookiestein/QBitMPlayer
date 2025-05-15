@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentPosition(0)
 {
     m_ui->setupUi(this);
+    m_ui->authenticateButton->setVisible(false);
 
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->durationLabel->setText("00:00:00/00:00:00");
@@ -53,11 +54,32 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_addSongToPlaylist = new QAction(tr("Add song to playlist"), this);
     m_removeSongAction = new QAction(tr("Remove song from playlist"), this);
-    m_ui->playlistWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-    m_ui->playlistWidget->addAction(m_addSongToPlaylist);
-    m_ui->playlistWidget->addAction(m_removeSongAction);
+    m_ui->localPlaylistWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+    m_ui->localPlaylistWidget->addAction(m_addSongToPlaylist);
+    m_ui->localPlaylistWidget->addAction(m_removeSongAction);
 
     m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
+
+#ifdef USE_SPOTIFY
+    m_spotifyManager = new SpotifyManager(m_settings, this);
+    connect(m_spotifyManager, &SpotifyManager::errorOccurred, this, [this] (const QString &reason) {
+        QMessageBox::critical(this, tr("Error"), reason);
+    });
+    connect(m_spotifyManager, &SpotifyManager::needsAuthentication, this, &MainWindow::needsAuthentication);
+
+    if (not m_spotifyManager->isAuthenticationNeeded()) {
+        m_spotifyManager->fetchProfile();
+        m_ui->spotifyNameLabel->setText(
+            tr("Name: %1").arg(m_spotifyManager->displayName())
+        );
+
+        m_ui->spotifyAccountTypeLabel->setText(
+            tr("Account Type: %1").arg(m_spotifyManager->accountType())
+        );
+    }
+#else
+    m_ui->playlistTabWidget->removeTab(1);
+#endif
 
     m_playlistSettings = new QSettings(
         createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
@@ -93,13 +115,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&m_player, &Player::positionChanged, this, &MainWindow::positionChanged);
     connect(&m_player, &Player::finished, this, &MainWindow::finished);
     connect(m_addSongToPlaylist, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
-    connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onRemoveSongActionTriggered);
+    connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onLocalRemoveSongActionTriggered);
     connect(m_ui->actionOpenFiles, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionOpen_Directory, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionQuit, &QAction::triggered, this, &MainWindow::onQuit);
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
-    connect(m_ui->playlistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
+    connect(m_ui->playlistTabWidget, &QTabWidget::currentChanged, this, &MainWindow::onPlaylistTabChanged);
+    connect(m_ui->localPlaylistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onLocalPlaylistItemDoubleClicked);
     connect(m_ui->openFilesButton, &QPushButton::clicked, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionOpenPlaylist, &QAction::triggered, this, &MainWindow::onOpenPlayListActionRequested);
     connect(m_ui->actionClosePlaylist, &QAction::triggered, this, &MainWindow::onClosePlayListActionRequested);
@@ -109,6 +132,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->closePlayListButton, &QPushButton::clicked, this, &MainWindow::onClosePlayListActionRequested);
     connect(m_ui->savePlaylistButton, &QPushButton::clicked, this, &MainWindow::onSavePlayListActionRequested);
     connect(m_ui->removePlaylistButton, &QPushButton::clicked, this, &MainWindow::onRemovePlayListActionRequested);
+#ifdef USE_SPOTIFY
+    connect(m_ui->authenticateButton, &QPushButton::clicked, this, &MainWindow::onAuthenticate);
+#endif
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::onOpenSettings);
     connect(m_ui->seekMusicSlider, &QSlider::sliderPressed, this, &MainWindow::onSeekSliderPressed);
     connect(m_ui->seekMusicSlider, &QSlider::sliderReleased, this, &MainWindow::onSeekSliderReleased);
@@ -397,8 +423,8 @@ void MainWindow::finished()
     {
     case AUTOREPEAT::NONE:
         if (m_player.playNext()) {
-            int index = m_ui->playlistWidget->currentIndex().row();
-            m_ui->playlistWidget->setCurrentRow(index + 1);
+            int index = m_ui->localPlaylistWidget->currentIndex().row();
+            m_ui->localPlaylistWidget->setCurrentRow(index + 1);
         } else {
             resetControls();
         }
@@ -411,23 +437,37 @@ void MainWindow::finished()
             m_player.play();
         } else {
             if (m_player.playNext()) {
-                int index = m_ui->playlistWidget->currentIndex().row();
-                m_ui->playlistWidget->setCurrentRow(index + 1);
+                int index = m_ui->localPlaylistWidget->currentIndex().row();
+                m_ui->localPlaylistWidget->setCurrentRow(index + 1);
             } else {
                 /* We've reached the end of the playlist, let's start again. */
                 m_player.setCurrent(0);
                 m_player.play();
-                m_ui->playlistWidget->setCurrentRow(0);
+                m_ui->localPlaylistWidget->setCurrentRow(0);
             }
         }
         break;
     }
 }
 
-void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
+void MainWindow::onPlaylistTabChanged(int index)
+{
+    if (index == 0) {
+        m_ui->authenticateButton->setVisible(false);
+        return;
+    }
+
+#ifdef USE_SPOTIFY
+    if (m_spotifyManager->isAuthenticationNeeded()) {
+        m_ui->authenticateButton->setVisible(true);
+    }
+#endif
+}
+
+void MainWindow::onLocalPlaylistItemDoubleClicked(QListWidgetItem *item)
 {
     /* Items in playlistWidget are added in the same order as those in m_playlist. */
-    auto index = m_ui->playlistWidget->indexFromItem(item).row();
+    auto index = m_ui->localPlaylistWidget->indexFromItem(item).row();
 
     m_player.stop();
     resetControls();
@@ -439,16 +479,16 @@ void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
     m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
 }
 
-void MainWindow::onRemoveSongActionTriggered(bool triggered)
+void MainWindow::onLocalRemoveSongActionTriggered(bool triggered)
 {
-    auto selectedItems = m_ui->playlistWidget->selectedItems();
+    auto selectedItems = m_ui->localPlaylistWidget->selectedItems();
     if (selectedItems.isEmpty()) {
         return;
     }
 
     /* Remember that playlistWidget has its items added in the same order as m_playlist */
-    auto index = m_ui->playlistWidget->indexFromItem(selectedItems[0]).row();
-    auto *item = m_ui->playlistWidget->takeItem(index);
+    auto index = m_ui->localPlaylistWidget->indexFromItem(selectedItems[0]).row();
+    auto *item = m_ui->localPlaylistWidget->takeItem(index);
     delete item;
 
     auto filename = m_playlist[index];
@@ -603,20 +643,53 @@ void MainWindow::onOpenFilesActionRequested()
 
     for (const auto &filename : playlist) {
         auto name = musicName(filename);
-        m_ui->playlistWidget->addItem(name);
+        m_ui->localPlaylistWidget->addItem(name);
     }
 
     if (wasPlaylistEmpty) {
         m_player.setCurrent(0);
         m_ui->playingEdit->setText(musicName(m_playlist[0]));
-        m_ui->playlistWidget->setCurrentRow(0);
+        m_ui->localPlaylistWidget->setCurrentRow(0);
     }
 }
 
 void MainWindow::onOpenPlayListActionRequested()
 {
     QEventLoop loop;
-    PlaylistChooser chooser(m_playlistSettings);
+
+    if (m_ui->playlistTabWidget->currentIndex() == 0) {
+        PlaylistChooser chooser(m_playlistSettings);
+        connect(&chooser, &PlaylistChooser::closed, &loop, &QEventLoop::quit);
+        chooser.show();
+        loop.exec();
+
+        auto playlist = chooser.playlist();
+        if (playlist.isEmpty()) {
+            return;
+        }
+
+        loadPlaylist(playlist);
+        return;
+    }
+
+#ifdef USE_SPOTIFY
+    {
+        m_settings->beginGroup("Spotify");
+        auto accessToken = m_settings->value("AccessToken", "").toString();
+        m_settings->endGroup();
+
+        if (accessToken.isEmpty()) {
+            QMessageBox::critical(
+                this,
+                tr("Authenticator Required"),
+                tr("You should first authenticate with your Spotify Account in order to load your playlists.")
+            );
+
+            return;
+        }
+    }
+
+    PlaylistChooser chooser(m_spotifyManager);
     connect(&chooser, &PlaylistChooser::closed, &loop, &QEventLoop::quit);
     chooser.show();
     loop.exec();
@@ -625,8 +698,7 @@ void MainWindow::onOpenPlayListActionRequested()
     if (playlist.isEmpty()) {
         return;
     }
-
-    loadPlaylist(playlist);
+#endif
 }
 
 void MainWindow::loadPlaylist(const QString &playlistName)
@@ -649,7 +721,7 @@ void MainWindow::loadPlaylist(const QString &playlistName)
 #endif
         m_playlist << filename;
         auto name = musicName(m_playlistSettings->value(filename).toString());
-        m_ui->playlistWidget->addItem(name);
+        m_ui->localPlaylistWidget->addItem(name);
     }
 
     m_playlistInitState = m_playlist;
@@ -661,7 +733,7 @@ void MainWindow::loadPlaylist(const QString &playlistName)
 
     m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlistName));
     m_ui->playlistLabel->setToolTip("");
-    m_ui->playlistWidget->setCurrentRow(0);
+    m_ui->localPlaylistWidget->setCurrentRow(0);
     m_ui->playingEdit->setText(musicName(m_playlist[0]));
 
     m_currentPlaylistName = playlistName;
@@ -686,7 +758,7 @@ void MainWindow::onClosePlayListActionRequested()
     m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->playlistLabel->setToolTip("");
     m_currentPlaylistName.clear();
-    m_ui->playlistWidget->clear();
+    m_ui->localPlaylistWidget->clear();
     m_ui->playingEdit->setText("");
     m_ui->playButton->setText(tr("Play"));
     m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
@@ -792,6 +864,29 @@ void MainWindow::onRemovePlayListActionRequested()
                              );
 }
 
+#ifdef USE_SPOTIFY
+void MainWindow::onAuthenticate()
+{
+    connect(m_spotifyManager, &SpotifyManager::hideAuthenticationButton, this, [this] () {
+        m_ui->authenticateButton->setVisible(false);
+    });
+
+    m_spotifyManager->authenticate();
+    m_spotifyManager->fetchProfile();
+    m_ui->spotifyNameLabel->setText(
+        tr("Name: %1").arg(m_spotifyManager->displayName())
+    );
+    m_ui->spotifyAccountTypeLabel->setText(
+        tr("Account type: %1").arg(m_spotifyManager->accountType())
+    );
+}
+
+void MainWindow::needsAuthentication(const QString &message)
+{
+    QMessageBox::warning(this, tr("Authorization is needed"), message);
+}
+#endif
+
 void MainWindow::onOpenSettings()
 {
     QEventLoop loop;
@@ -857,7 +952,7 @@ void MainWindow::onPlayPrevious()
 {
     if (m_player.playPrevious()) {
         int index = m_player.currentIndex();
-        m_ui->playlistWidget->setCurrentRow(index);
+        m_ui->localPlaylistWidget->setCurrentRow(index);
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
     } /* No need to warn because player emits a warning signal and it's caught by this class. */
 }
@@ -866,7 +961,7 @@ void MainWindow::onPlayNext()
 {
     if (m_player.playNext()) {
         int index = m_player.currentIndex();
-        m_ui->playlistWidget->setCurrentRow(index);
+        m_ui->localPlaylistWidget->setCurrentRow(index);
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
         m_ui->playButton->setText(tr("Pause"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));

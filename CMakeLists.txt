@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(QBitMPlayer
-    VERSION 2.7.0
+    VERSION 3.0.0
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -14,8 +14,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Network Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Network Widgets)
 
 set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
 set(LICENSE "MIT")
@@ -39,6 +39,16 @@ set(PROJECT_SOURCES
     ../resources.qrc
     ../resources/qbitmplayer.desktop
 )
+
+if (USE_SPOTIFY)
+    add_compile_definitions(USE_SPOTIFY)
+    set(PROJECT_SOURCES "${PROJECT_SOURCES}"
+        authenticator.hpp
+        authenticator.cpp
+        spotifymanager.hpp
+        spotifymanager.cpp
+    )
+endif()
 
 list(TRANSFORM PROJECT_SOURCES PREPEND "src/")
 
@@ -88,6 +98,7 @@ endif()
 
 target_link_libraries(qbitmplayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Multimedia
+    Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::Widgets
 )
 

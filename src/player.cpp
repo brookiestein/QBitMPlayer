@@ -73,6 +73,11 @@ void Player::setPlayList(const QStringList &playlist)
     m_playlist = playlist;
 }
 
+void Player::setPlaylist(const std::map<QString, QString> &playlist)
+{
+    m_spotifyPlaylist = playlist;
+}
+
 void Player::setVolume(float volume)
 {
     m_audioOutput->setVolume(volume);

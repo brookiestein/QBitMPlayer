@@ -83,8 +83,8 @@ int main(int argc, char *argv[])
         {
             QSettings settings(w.createEnvironment(), QSettings::IniFormat);
             settings.beginGroup("WindowSettings");
-            int width = settings.value("Width", 1024).toInt();
-            int height = settings.value("Height", 530).toInt();
+            int width = settings.value("Width", 1215).toInt();
+            int height = settings.value("Height", 680).toInt();
             /* In order to show the window maximized both
              * Maximized as RememberWindowSize have to be set to true
              * or alwaysMaximized. */

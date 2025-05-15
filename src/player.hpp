@@ -15,6 +15,9 @@ class Player : public QObject
 public:
     explicit Player(const QStringList &playlist = QStringList(), QObject *parent = nullptr);
     void setPlayList(const QStringList &playlist);
+#ifdef USE_SPOTIFY
+    void setPlaylist(const std::map<QString, QString> &playlist);
+#endif
     void setCurrent(qint64 index);
     /* Useful when in the command line. */
     void setAutoPlay(bool autoPlay);
@@ -48,6 +51,9 @@ signals:
 
 private:
     QStringList m_playlist;
+#ifdef USE_SPOTIFY
+    std::map<QString, QString> m_spotifyPlaylist;
+#endif
     qint64 m_currentMusicIndex;
     QString m_currentMusicFilename;
     QAudioOutput *m_audioOutput;

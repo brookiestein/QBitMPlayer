@@ -14,6 +14,9 @@
 
 #include "config.hpp"
 #include "player.hpp"
+#ifdef USE_SPOTIFY
+#include "spotifymanager.hpp"
+#endif
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -66,6 +69,10 @@ private:
     // in order to seek the player there when the user click continue.
     qint64 m_currentPosition;
 
+#ifdef USE_SPOTIFY
+    SpotifyManager *m_spotifyManager;
+#endif
+
     enum class AUTOREPEAT { NONE = 0, ONE, ALL };
     AUTOREPEAT m_autorepeat = AUTOREPEAT::NONE;
 
@@ -95,8 +102,9 @@ private slots:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
-    void onPlaylistItemDoubleClicked(QListWidgetItem *item);
-    void onRemoveSongActionTriggered([[maybe_unused]] bool triggered);
+    void onPlaylistTabChanged(int index);
+    void onLocalPlaylistItemDoubleClicked(QListWidgetItem *item);
+    void onLocalRemoveSongActionTriggered([[maybe_unused]] bool triggered);
     QStringList findFiles(const QString &dir, const QStringList &filters);
     QStringList openFiles(bool justFiles = true);
     void onOpenFilesActionRequested();
@@ -104,6 +112,10 @@ private slots:
     void onClosePlayListActionRequested();
     void onSavePlayListActionRequested();
     void onRemovePlayListActionRequested();
+#ifdef USE_SPOTIFY
+    void onAuthenticate();
+    void needsAuthentication(const QString &message);
+#endif
     void onOpenSettings();
     void playPauseHelper();
     void onPlayButtonClicked();
