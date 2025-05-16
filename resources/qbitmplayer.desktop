@@ -4,6 +4,6 @@ Exec=/usr/local/bin/qbitmplayer
 Type=Application
 Comment=Music Player written in C++ & Qt.
 Icon=/usr/local/share/QBitMPlayer/resources/assets/icon.png
-Categories=Multimedia;
+Categories=AudioVideo;Audio;
 Terminal=false
 StartupNotify=true
