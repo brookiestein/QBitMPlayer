@@ -2,6 +2,8 @@
 #define PLAYER_HPP
 
 #include <QAudioOutput>
+#include <QJSEngine>
+#include <QJSValue>
 #include <QMediaPlayer>
 #include <QObject>
 
@@ -55,6 +57,8 @@ private:
     QStringList m_localPlaylist;
 #ifdef USE_SPOTIFY
     std::map<QString, QString> m_spotifyPlaylist;
+    QJSEngine m_jsEngine;
+    QJSValue m_spotifyJS;
 #endif
     qint64 m_currentMusicIndex;
     qint64 m_spotifyCurrentMusicIndex;

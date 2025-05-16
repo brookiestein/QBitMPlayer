@@ -14,8 +14,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Network Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Network Widgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Network Qml Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Network Qml Widgets)
 
 set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
 set(LICENSE "MIT")
@@ -99,6 +99,7 @@ endif()
 target_link_libraries(qbitmplayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Multimedia
     Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::Qml
     Qt${QT_VERSION_MAJOR}::Widgets
 )
 

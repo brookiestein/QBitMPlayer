@@ -1,9 +1,12 @@
 #include "spotifymanager.hpp"
 #include "authenticator.hpp"
+#include "config.hpp"
 
 #include <QCryptographicHash>
 #include <QDesktopServices>
+#include <QDir>
 #include <QEventLoop>
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,6 +14,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRandomGenerator>
+#include <QStandardPaths>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -23,6 +27,39 @@ SpotifyManager::SpotifyManager(QSettings *settings, QObject *parent)
     m_accessToken = m_settings->value("AccessToken", "").toString();
     m_userID = m_settings->value("UserID", "").toString();
     m_settings->endGroup();
+
+    QDir appdata = QDir(
+        QString("%1%2%3").arg(
+            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation),
+            QDir::separator(),
+            PROJECT_NAME
+        )
+    );
+
+    if (appdata.absolutePath().count(PROJECT_NAME) > 1)
+        appdata.cdUp();
+    if (not appdata.exists(appdata.absolutePath())) {
+        if (not appdata.mkpath(appdata.absolutePath())) {
+            emit errorOccurred(tr("AppData location could not be created."));
+            throw std::exception();
+        }
+    }
+
+    m_spotifyJSFilePath = QString("%1%2%3").arg(
+        appdata.absolutePath(),
+        QDir::separator(),
+        "spotify-player.js"
+    );
+
+    m_spotifyJSFile = new QFile(m_spotifyJSFilePath);
+
+    if (not loadSpotifyJSFile())
+        throw std::exception();
+}
+
+SpotifyManager::~SpotifyManager()
+{
+    delete m_spotifyJSFile;
 }
 
 bool SpotifyManager::isAuthenticationNeeded() const
@@ -115,15 +152,15 @@ void SpotifyManager::getAccessToken()
     QNetworkAccessManager manager;
     auto *reply = manager.post(request, query.toString().toUtf8());
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &loop] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
         m_accessToken = response["access_token"].toString();
         reply->deleteLater();
+        loop.quit();
     });
 
     connect(reply, &QNetworkReply::errorOccurred, this, &SpotifyManager::handleNetworkError);
     connect(reply, &QNetworkReply::errorOccurred, &loop, &QEventLoop::quit);
-    connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
 
     loop.exec();
 
@@ -153,7 +190,7 @@ void SpotifyManager::fetchProfile()
     auto *reply = manager.get(request);
 
     connect(reply, &QNetworkReply::errorOccurred, this, &SpotifyManager::handleNetworkError);
-    connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &loop] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
 
         m_userID = response["id"].toString();
@@ -165,9 +202,9 @@ void SpotifyManager::fetchProfile()
         m_settings->endGroup();
 
         reply->deleteLater();
+        loop.quit();
     });
 
-    connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
     loop.exec();
 
     if (not m_userID.isEmpty()) {
@@ -196,7 +233,7 @@ void SpotifyManager::fetchPlaylist()
     auto *reply = manager.get(request);
 
     connect(reply, &QNetworkReply::errorOccurred, this, &SpotifyManager::handleNetworkError);
-    connect(reply, &QNetworkReply::readyRead, this, [this, &reply] () {
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &loop] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
         auto playlists = response["items"].toArray();
 
@@ -204,9 +241,9 @@ void SpotifyManager::fetchPlaylist()
             auto object = playlists.at(i);
             m_playlists[object["id"].toString()] = object["name"].toString();
         }
-    });
 
-    connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
+        loop.quit();
+    });
 
     loop.exec();
 
@@ -229,13 +266,13 @@ std::map<QString, QString> SpotifyManager::playlists() const
     return m_playlists;
 }
 
-std::map<QString, QString> SpotifyManager::fetchTracks(const QString &playlistName)
+void SpotifyManager::fetchTracks(const QString &playlistName)
 {
     if (playlistName.isEmpty())
-        return {};
+        return;
     if (m_playlists.empty()) {
         emit errorOccurred(tr("SpotifyManager::fetchPlaylist() must first be called."));
-        return {};
+        return;
     }
 
     QString playlistID {};
@@ -282,7 +319,7 @@ std::map<QString, QString> SpotifyManager::fetchTracks(const QString &playlistNa
 
     auto *reply = manager.get(request);
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &fetchImage] () {
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &fetchImage, &loop] () {
         auto response = QJsonDocument::fromJson(reply->readAll());
         auto items = response["items"].toArray();
 
@@ -294,13 +331,11 @@ std::map<QString, QString> SpotifyManager::fetchTracks(const QString &playlistNa
 
             m_images[trackID] = fetchImage(trackID);
         }
+
+        loop.quit();
     });
 
-    connect(reply, &QNetworkReply::readyRead, &loop, &QEventLoop::quit);
-
     loop.exec();
-
-    return m_chosenPlaylist;
 }
 
 std::map<QString, QString> SpotifyManager::chosenPlaylist() const
@@ -320,6 +355,39 @@ QStringList SpotifyManager::tracks() const
 QMap<QString, QString> SpotifyManager::images() const
 {
     return m_images;
+}
+
+bool SpotifyManager::loadSpotifyJSFile()
+{
+    if (m_spotifyJSFile->exists()) {
+        if (not m_spotifyJSFile->open(QIODevice::ReadOnly)) {
+            emit errorOccurred(tr("File: %1 could not be opened.").arg(m_spotifyJSFilePath));
+            return false;
+        }
+
+        return true;
+    }
+
+    if (not m_spotifyJSFile->open(QIODevice::ReadWrite)) {
+        emit errorOccurred(tr("Spotify JS file could not be written."));
+        return false;
+    }
+
+    QEventLoop loop;
+    QNetworkAccessManager manager;
+    QNetworkRequest request(QUrl("https://sdk.scdn.co/spotify-player.js"));
+    auto *reply = manager.get(request);
+
+    connect(reply, &QNetworkReply::readyRead, this, [this, &reply, &loop] () {
+        QByteArray response = reply->readAll();
+        m_spotifyJSFile->write(response);
+        m_spotifyJSFile->flush();
+        reply->deleteLater();
+        loop.quit();
+    });
+
+    loop.exec();
+    return true;
 }
 
 void SpotifyManager::handleNetworkError(QNetworkReply::NetworkError error)

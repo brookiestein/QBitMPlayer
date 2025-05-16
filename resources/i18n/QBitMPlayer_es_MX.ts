@@ -20,6 +20,7 @@
         <location filename="../../src/mainwindow.ui" line="14"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="395"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="395"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="395"/>
         <source>QBitMPlayer</source>
         <translation></translation>
     </message>
@@ -27,6 +28,7 @@
         <location filename="../../src/mainwindow.ui" line="30"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="406"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="406"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="406"/>
         <source>Playlist</source>
         <translation>Lista de Reproducción</translation>
     </message>
@@ -34,6 +36,7 @@
         <location filename="../../src/mainwindow.ui" line="47"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="407"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="407"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="407"/>
         <source>Local</source>
         <translation>Local</translation>
     </message>
@@ -41,6 +44,7 @@
         <location filename="../../src/mainwindow.ui" line="64"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="410"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="410"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="410"/>
         <source>Spotify</source>
         <translation>Spotify</translation>
     </message>
@@ -48,6 +52,7 @@
         <location filename="../../src/mainwindow.ui" line="75"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="408"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="408"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="408"/>
         <source>Name:</source>
         <translation>Nombre:</translation>
     </message>
@@ -55,6 +60,7 @@
         <location filename="../../src/mainwindow.ui" line="82"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="409"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="409"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="409"/>
         <source>Account Type:</source>
         <translation>Tipo de Cuenta:</translation>
     </message>
@@ -62,6 +68,7 @@
         <location filename="../../src/mainwindow.ui" line="97"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="411"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="411"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="411"/>
         <source>Open</source>
         <translation>Abrir</translation>
     </message>
@@ -69,6 +76,7 @@
         <location filename="../../src/mainwindow.ui" line="107"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="412"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="412"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="412"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
@@ -76,6 +84,7 @@
         <location filename="../../src/mainwindow.ui" line="117"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="413"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="413"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="413"/>
         <source>Save</source>
         <translation>Guardar</translation>
     </message>
@@ -83,6 +92,7 @@
         <location filename="../../src/mainwindow.ui" line="127"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="414"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="414"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="414"/>
         <source>Remove</source>
         <translation>Borrar</translation>
     </message>
@@ -90,6 +100,7 @@
         <location filename="../../src/mainwindow.ui" line="137"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="415"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="415"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="415"/>
         <source>Authenticate</source>
         <translation>Autenticar</translation>
     </message>
@@ -97,6 +108,7 @@
         <location filename="../../src/mainwindow.ui" line="157"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="416"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="416"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="416"/>
         <source>Playing:</source>
         <translation>Reproduciendo:</translation>
     </message>
@@ -104,6 +116,7 @@
         <location filename="../../src/mainwindow.ui" line="171"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="417"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="417"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="417"/>
         <source>Open Files</source>
         <translation>Abrir Archivos</translation>
     </message>
@@ -111,6 +124,7 @@
         <location filename="../../src/mainwindow.ui" line="221"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="419"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="419"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="419"/>
         <location filename="../../src/mainwindow.cpp" line="216"/>
         <location filename="../../src/mainwindow.cpp" line="330"/>
         <location filename="../../src/mainwindow.cpp" line="890"/>
@@ -123,6 +137,7 @@
         <location filename="../../src/mainwindow.ui" line="231"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="420"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="420"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="420"/>
         <location filename="../../src/mainwindow.cpp" line="222"/>
         <source>Stop</source>
         <translation>Detener</translation>
@@ -131,6 +146,7 @@
         <location filename="../../src/mainwindow.ui" line="241"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="421"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="421"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="421"/>
         <location filename="../../src/mainwindow.cpp" line="228"/>
         <source>Previous</source>
         <translation>Anterior</translation>
@@ -139,6 +155,7 @@
         <location filename="../../src/mainwindow.ui" line="251"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="422"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="422"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="422"/>
         <location filename="../../src/mainwindow.cpp" line="234"/>
         <source>Next</source>
         <translation>Siguiente</translation>
@@ -147,6 +164,7 @@
         <location filename="../../src/mainwindow.ui" line="261"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="423"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="423"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="423"/>
         <source>Auto Repeat</source>
         <translation>Repetir</translation>
     </message>
@@ -154,6 +172,7 @@
         <location filename="../../src/mainwindow.ui" line="293"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="424"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="424"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="424"/>
         <source>Volume:</source>
         <translation>Volumen:</translation>
     </message>
@@ -161,6 +180,7 @@
         <location filename="../../src/mainwindow.ui" line="336"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="426"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="426"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="426"/>
         <source>File</source>
         <translation>Archivo</translation>
     </message>
@@ -168,6 +188,7 @@
         <location filename="../../src/mainwindow.ui" line="352"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="427"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="427"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="427"/>
         <source>Help</source>
         <translation>Ayuda</translation>
     </message>
@@ -175,6 +196,7 @@
         <location filename="../../src/mainwindow.ui" line="366"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="396"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="396"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="396"/>
         <source>&amp;Open Files</source>
         <translation>&amp;Abrir Archivos</translation>
     </message>
@@ -182,6 +204,7 @@
         <location filename="../../src/mainwindow.ui" line="374"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="397"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="397"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="397"/>
         <source>&amp;About</source>
         <translation>&amp;Acerca de</translation>
     </message>
@@ -189,6 +212,7 @@
         <location filename="../../src/mainwindow.ui" line="382"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="398"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="398"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="398"/>
         <source>About &amp;Qt</source>
         <translation>Acerca de &amp;Qt</translation>
     </message>
@@ -196,6 +220,7 @@
         <location filename="../../src/mainwindow.ui" line="387"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="399"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="399"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="399"/>
         <source>&amp;Settings</source>
         <translation>&amp;Ajustes</translation>
     </message>
@@ -203,6 +228,7 @@
         <location filename="../../src/mainwindow.ui" line="395"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="400"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="400"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="400"/>
         <source>&amp;Quit</source>
         <translation>&amp;Salir</translation>
     </message>
@@ -210,6 +236,7 @@
         <location filename="../../src/mainwindow.ui" line="403"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="401"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="401"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="401"/>
         <source>Open &amp;Playlist</source>
         <translation>Abrir &amp;Lista de Reproducción</translation>
     </message>
@@ -217,6 +244,7 @@
         <location filename="../../src/mainwindow.ui" line="411"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="402"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="402"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="402"/>
         <source>&amp;Close Playlist</source>
         <translation>&amp;Cerrar Lista de Reproducción</translation>
     </message>
@@ -224,6 +252,7 @@
         <location filename="../../src/mainwindow.ui" line="419"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="403"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="403"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="403"/>
         <source>Sa&amp;ve Playlist</source>
         <translation>Gu&amp;adar Lista de Reproducción</translation>
     </message>
@@ -231,6 +260,7 @@
         <location filename="../../src/mainwindow.ui" line="427"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="404"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="404"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="404"/>
         <source>&amp;Remove Playlist</source>
         <translation>&amp;Borrar Lista de Reproducción</translation>
     </message>
@@ -238,6 +268,7 @@
         <location filename="../../src/mainwindow.ui" line="435"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="405"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_mainwindow.h" line="405"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="405"/>
         <source>Open &amp;Directory</source>
         <translation>Abrir &amp;Carpeta</translation>
     </message>
@@ -618,6 +649,7 @@
         <location filename="../../src/playlistchooser.ui" line="14"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_playlistchooser.h" line="57"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_playlistchooser.h" line="57"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_playlistchooser.h" line="57"/>
         <source>Open a Playlist</source>
         <translation>Abrir una Lista de Reproducción</translation>
     </message>
@@ -625,6 +657,7 @@
         <location filename="../../src/playlistchooser.ui" line="25"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_playlistchooser.h" line="58"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_playlistchooser.h" line="58"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_playlistchooser.h" line="58"/>
         <source>Choose an Awesome Playlist:</source>
         <translation>Elige una Lista de Reproducción Increíble:</translation>
     </message>
@@ -673,6 +706,7 @@
         <location filename="../../src/settings.ui" line="14"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="327"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="327"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="327"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
@@ -680,6 +714,7 @@
         <location filename="../../src/settings.ui" line="94"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="330"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="330"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="330"/>
         <source>Remember window size</source>
         <translation>Recordar tamaño de la ventana</translation>
     </message>
@@ -687,6 +722,7 @@
         <location filename="../../src/settings.ui" line="118"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="332"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="332"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="332"/>
         <source>Always maximized</source>
         <translation>Siempre maximizada</translation>
     </message>
@@ -694,6 +730,7 @@
         <location filename="../../src/settings.ui" line="106"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="331"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="331"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="331"/>
         <source>Centered</source>
         <translation>Centrada</translation>
     </message>
@@ -701,6 +738,7 @@
         <location filename="../../src/settings.ui" line="159"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="334"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="334"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="334"/>
         <source>Width:</source>
         <translation>Ancho:</translation>
     </message>
@@ -708,6 +746,7 @@
         <location filename="../../src/settings.ui" line="174"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="335"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="335"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="335"/>
         <source>Height:</source>
         <translation>Altura:</translation>
     </message>
@@ -715,6 +754,7 @@
         <location filename="../../src/settings.ui" line="277"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="339"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="339"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="339"/>
         <source>Remember audio volume level</source>
         <translation>Recordar nivel de volumen del audio</translation>
     </message>
@@ -722,6 +762,7 @@
         <location filename="../../src/settings.ui" line="291"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="340"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="340"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="340"/>
         <source>Volume level:</source>
         <translation>Nivel de Volumen:</translation>
     </message>
@@ -729,6 +770,7 @@
         <location filename="../../src/settings.ui" line="319"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="345"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="345"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="345"/>
         <location filename="../../src/settings.cpp" line="21"/>
         <source>Playlist</source>
         <translation>Lista de Reproducción</translation>
@@ -737,6 +779,7 @@
         <location filename="../../src/settings.ui" line="334"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="342"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="342"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="342"/>
         <source>Default playlist:</source>
         <translation>Lista de Reproducción Predeterminada:</translation>
     </message>
@@ -750,6 +793,9 @@
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="329"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="338"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="344"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="329"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="338"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="344"/>
         <source>Apply</source>
         <translation>Aplicar</translation>
     </message>
@@ -757,6 +803,7 @@
         <location filename="../../src/settings.ui" line="43"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="336"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="336"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="336"/>
         <location filename="../../src/settings.cpp" line="19"/>
         <source>Window</source>
         <translation>Ventana</translation>
@@ -765,6 +812,7 @@
         <location filename="../../src/settings.ui" line="130"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="333"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="333"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="333"/>
         <source>Minimize to systray instead of completely closing</source>
         <translation>Minimizar a la barra en lugar de cerrar completamente</translation>
     </message>
@@ -772,6 +820,7 @@
         <location filename="../../src/settings.ui" line="215"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_settings.h" line="341"/>
         <location filename="../../build/Desktop-Release/qbitmplayer_autogen/include/ui_settings.h" line="341"/>
+        <location filename="../../build/release/qbitmplayer_autogen/include/ui_settings.h" line="341"/>
         <location filename="../../src/settings.cpp" line="20"/>
         <source>Audio</source>
         <translation>Audio</translation>
@@ -893,32 +942,47 @@
 <context>
     <name>SpotifyManager</name>
     <message>
-        <location filename="../../src/spotifymanager.cpp" line="131"/>
+        <location filename="../../src/spotifymanager.cpp" line="43"/>
+        <source>AppData location could not be created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/spotifymanager.cpp" line="168"/>
         <source>An error occurred while getting the Spotify access token.</source>
         <translation>Ocurrió un error mientras se obtenía el token de acceso de Spotify.</translation>
     </message>
     <message>
-        <location filename="../../src/spotifymanager.cpp" line="237"/>
+        <location filename="../../src/spotifymanager.cpp" line="274"/>
         <source>SpotifyManager::fetchPlaylist() must first be called.</source>
         <translation>SpotifyManager::fetchPlaylist() must first be called.</translation>
     </message>
     <message>
-        <location filename="../../src/spotifymanager.cpp" line="332"/>
+        <location filename="../../src/spotifymanager.cpp" line="364"/>
+        <source>File: %1 could not be opened.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/spotifymanager.cpp" line="372"/>
+        <source>Spotify JS file could not be written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/spotifymanager.cpp" line="400"/>
         <source>Connection to spotify.com failed.</source>
         <translation>La conexión a spotify.com falló.</translation>
     </message>
     <message>
-        <location filename="../../src/spotifymanager.cpp" line="335"/>
+        <location filename="../../src/spotifymanager.cpp" line="403"/>
         <source>spotify.com closed the connection.</source>
         <translation>spotify.com cerró la conexión.</translation>
     </message>
     <message>
-        <location filename="../../src/spotifymanager.cpp" line="339"/>
+        <location filename="../../src/spotifymanager.cpp" line="407"/>
         <source>Could not connect to spotify.com. Please make sure you have internet connection.</source>
         <translation>No se pudo conectar a spotify.com. Por favor, asegúrate de tener conexión a internet.</translation>
     </message>
     <message>
-        <location filename="../../src/spotifymanager.cpp" line="361"/>
+        <location filename="../../src/spotifymanager.cpp" line="429"/>
         <source>Since this apps is just starting, Spotify limits the authentication token lifetime. This will be fixed in the future as more users use the app. We&apos;re so sorry for this, just authorize the app again in the link that will be opened after this message is closed.</source>
         <translation>Debido a que esta aplicación apenas está iniciando, Spotify limita el tiempo de vida del token de autenticación. Esto será solucionado en el futuro, cuando más usuarios usen la aplicación. Lo sentimos mucho, sólo autorice la aplicación nuevamente en el enlace que será abierto después de que cierre este mensaje.</translation>
     </message>

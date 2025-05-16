@@ -1,8 +1,11 @@
 #ifndef SPOTIFYMANAGER_HPP
 #define SPOTIFYMANAGER_HPP
 
-#include <QObject>
+#include <QFile>
+#include <QJSEngine>
+#include <QJSValue>
 #include <QNetworkReply>
+#include <QObject>
 #include <QSettings>
 #include <map>
 
@@ -26,12 +29,20 @@ class SpotifyManager : public QObject
     std::map<QString, QString> m_chosenPlaylist;
     // trackID -> imageURL
     QMap<QString, QString> m_images;
+    QString m_spotifyJSFilePath;
+    QFile *m_spotifyJSFile;
+    QJSEngine m_jsEngine;
+    QJSValue m_globalObject;
+    QJSValue m_spotifyJS;
+    QJSValue m_spotifyObject;
 
     void generateCodeVerifier(int length);
     void generateCodeChallenge();
     void getAccessToken();
+    bool loadSpotifyJSFile();
 public:
     explicit SpotifyManager(QSettings *settings, QObject *parent = nullptr);
+    ~SpotifyManager();
     void authenticate();
     bool isAuthenticationNeeded() const;
     void fetchProfile();
@@ -44,7 +55,7 @@ public:
     // playlistID -> playlistName
     std::map<QString, QString> playlists() const;
     // trackID -> trackName
-    std::map<QString, QString> fetchTracks(const QString &playlistName);
+    void fetchTracks(const QString &playlistName);
     std::map<QString, QString> chosenPlaylist() const;
     QStringList tracks() const;
     QMap<QString, QString> images() const;
