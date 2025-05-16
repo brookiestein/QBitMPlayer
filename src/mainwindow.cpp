@@ -880,10 +880,10 @@ void MainWindow::onClosePlayListActionRequested(PLAYLIST_TYPE type)
         } else {
             m_ui->playlistLabel->setText(tr("Playlist: %1").arg(m_currentPlaylistName));
         }
-#endif
         m_ui->spotifyListWidget->clear();
         m_spotifyPlaylist.clear();
         m_SpotifyCurrentPlaylistName.clear();
+#endif
     }
 
     m_ui->playingEdit->setText("");
