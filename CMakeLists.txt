@@ -113,8 +113,8 @@ install(TARGETS qbitmplayer
 )
 
 install(FILES resources/qbitmplayer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
-install(FILES ${QM_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/resources/i18n)
 install(DIRECTORY resources/assets DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/resources)
+install(FILES ${QM_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/resources/i18n)
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(qbitmplayer)
