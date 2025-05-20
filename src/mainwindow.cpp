@@ -40,6 +40,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_decreaseVolumeBy5Shortcut {new QShortcut(QKeySequence(Qt::Key_Down), this)}
     , m_decreaseVolumeBy10Shortcut {new QShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_Down), this)}
     , m_currentPosition(0)
+#ifdef USE_IPC
+    , m_dbusConnection {QDBusConnection::sessionBus()}
+#endif
 {
     m_ui->setupUi(this);
 
@@ -984,3 +987,25 @@ Build Date: %6</p>").arg(PROJECT_NAME, PROJECT_VERSION, PROJECT_LICENSE, AUTHORS
     messageBox.setText(text);
     messageBox.exec();
 }
+
+#ifdef USE_IPC
+void MainWindow::togglePlay()
+{
+    playPauseHelper();
+}
+
+void MainWindow::playPrevious()
+{
+    onPlayPrevious();
+}
+
+void MainWindow::playNext()
+{
+    onPlayNext();
+}
+
+void MainWindow::stop()
+{
+    onStopPlayer();
+}
+#endif // USE_IPC

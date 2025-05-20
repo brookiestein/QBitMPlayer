@@ -11,6 +11,9 @@
 #include <QShowEvent>
 #include <QStandardPaths>
 #include <QSystemTrayIcon>
+#ifdef USE_IPC
+    #include <QDBusConnection>
+#endif
 
 #include "config.hpp"
 #include "player.hpp"
@@ -24,6 +27,11 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+#ifdef USE_IPC
+    Q_CLASSINFO("D-Bus Interface", SERVICE_NAME)
+
+    QDBusConnection m_dbusConnection;
+#endif
 
     void resetControls();
     QString musicName(const QString &filename);
@@ -118,5 +126,12 @@ private slots:
     void onVolumeIncrease();
     void onVolumeDecrease();
     void about();
+#ifdef USE_IPC
+public slots:
+    Q_SCRIPTABLE void togglePlay();
+    Q_SCRIPTABLE void playPrevious();
+    Q_SCRIPTABLE void playNext();
+    Q_SCRIPTABLE void stop();
+#endif
 };
 #endif // MAINWINDOW_HPP

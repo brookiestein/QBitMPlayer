@@ -5,3 +5,4 @@
 #define PROJECT_WEBPAGE "https://github.com/brookiestein/QBitMPlayer"
 #define AUTHORS "Brayan M. Salazar (brookiestein)"
 #define BUILD_DATETIME "${BUILD_TIMESTAMP}"
+#define SERVICE_NAME "com.github.brookiestein.QBitMPlayer"
