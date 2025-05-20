@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(QBitMPlayer
-    VERSION 2.7.0
+    VERSION 2.8.0
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -16,6 +16,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
+
+if (USE_IPC)
+    find_package(QT NAMES Qt6 REQUIRED COMPONENTS DBus)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED DBus)
+
+    add_compile_definitions(USE_IPC="1")
+endif()
 
 set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
 set(LICENSE "MIT")
@@ -90,6 +97,12 @@ target_link_libraries(qbitmplayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Multimedia
     Qt${QT_VERSION_MAJOR}::Widgets
 )
+
+if (USE_IPC)
+    target_link_libraries(qbitmplayer PRIVATE
+        Qt${QT_VERSION_MAJOR}::DBus
+    )
+endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

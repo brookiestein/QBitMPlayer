@@ -9,6 +9,10 @@
 #include <QTranslator>
 #include <iostream>
 #include <string>
+#ifdef USE_IPC
+    #include <QDBusConnection>
+    #include <QDBusMessage>
+#endif // USE_IPC
 
 #include "config.hpp"
 #include "player.hpp"
@@ -23,6 +27,9 @@ const QMap<QString, QString> availableLanguages {
 QList<QCommandLineOption> commandLineOptions();
 /* Prompts user for a reply with a QMessageBox or in the command line. */
 QMessageBox::StandardButton showMessage(int argc, const QString &message, bool question);
+#ifdef USE_IPC
+    void registerDBusService(MainWindow &m);
+#endif // USE_IPC
 
 int main(int argc, char *argv[])
 {
@@ -75,10 +82,37 @@ int main(int argc, char *argv[])
         }
     }
 
+#ifdef USE_IPC
+    if (parser.isSet("next")) {
+        QDBusConnection::sessionBus().send(
+            QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "playNext")
+        );
+        return EXIT_SUCCESS;
+    } else if (parser.isSet("previous")) {
+        QDBusConnection::sessionBus().send(
+            QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "playPrevious")
+        );
+        return EXIT_SUCCESS;
+    } else if (parser.isSet("toggle-play")) {
+        QDBusConnection::sessionBus().send(
+            QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "togglePlay")
+        );
+        return EXIT_SUCCESS;
+    } else if (parser.isSet("stop")) {
+        QDBusConnection::sessionBus().send(
+            QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "stop")
+        );
+        return EXIT_SUCCESS;
+    }
+#endif // USE_IPC
+
     /* If user didn't provide any command line option or just set language, show the GUI. */
     if (argc == 1 or (parser.isSet("language") and argc == 3)) {
         MainWindow w;
         bool maximized {false};
+#ifdef USE_IPC
+        registerDBusService(w);
+#endif // USE_IPC
 
         {
             QSettings settings(w.createEnvironment(), QSettings::IniFormat);
@@ -154,6 +188,28 @@ QList<QCommandLineOption> commandLineOptions()
         "language"
     );
 
+#ifdef USE_IPC
+    options << QCommandLineOption(
+        QStringList() << "n" << "next",
+        QObject::tr("Tell an existing %1 instance to play the next song if any.").arg(PROJECT_NAME)
+    );
+
+    options << QCommandLineOption(
+        QStringList() << "P" << "previous",
+        QObject::tr("Tell an existing %1 instance to play the previous song if any.").arg(PROJECT_NAME)
+    );
+
+    options << QCommandLineOption(
+        QStringList() << "t" << "toggle-play",
+        QObject::tr("Tell an existing %1 instance to resume or pause the player.").arg(PROJECT_NAME)
+    );
+
+    options << QCommandLineOption(
+        QStringList() << "s" << "stop",
+        QObject::tr("Tell an existing %1 instance to stop the player.").arg(PROJECT_NAME)
+    );
+#endif
+
     return options;
 }
 
@@ -182,3 +238,29 @@ QMessageBox::StandardButton showMessage(int argc, const QString &message, bool q
 
     return QMessageBox::Yes;
 }
+
+#ifdef USE_IPC
+void registerDBusService(MainWindow &m)
+{
+    auto connection = QDBusConnection::sessionBus();
+    if (not connection.registerService(SERVICE_NAME)) {
+        QMessageBox::critical(
+            nullptr,
+            QObject::tr("Error"),
+            QObject::tr("Unable to register DBus service. Play won't respond to IPC commands.")
+        );
+
+        return;
+    }
+
+    if (not connection.registerObject("/Listen", &m, QDBusConnection::ExportScriptableSlots)) {
+        QMessageBox::critical(
+            nullptr,
+            QObject::tr("Error"),
+            QObject::tr("Unable to register listener object. Play won't respond to IPC commands.")
+        );
+
+        return;
+    }
+}
+#endif // USE_IPC
