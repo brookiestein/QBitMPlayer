@@ -188,6 +188,7 @@ QList<QCommandLineOption> commandLineOptions()
         "language"
     );
 
+#ifdef USE_IPC
     options << QCommandLineOption(
         QStringList() << "n" << "next",
         QObject::tr("Tell an existing %1 instance to play the next song if any.").arg(PROJECT_NAME)
@@ -207,6 +208,7 @@ QList<QCommandLineOption> commandLineOptions()
         QStringList() << "s" << "stop",
         QObject::tr("Tell an existing %1 instance to stop the player.").arg(PROJECT_NAME)
     );
+#endif
 
     return options;
 }
@@ -245,12 +247,20 @@ void registerDBusService(MainWindow &m)
         QMessageBox::critical(
             nullptr,
             QObject::tr("Error"),
-            QObject::tr("Unable to register DBus service. Play won't respond to IPC.")
+            QObject::tr("Unable to register DBus service. Play won't respond to IPC commands.")
         );
 
         return;
     }
 
-    connection.registerObject("/Listen", &m, QDBusConnection::ExportScriptableSlots);
+    if (not connection.registerObject("/Listen", &m, QDBusConnection::ExportScriptableSlots)) {
+        QMessageBox::critical(
+            nullptr,
+            QObject::tr("Error"),
+            QObject::tr("Unable to register listener object. Play won't respond to IPC commands.")
+        );
+
+        return;
+    }
 }
 #endif // USE_IPC

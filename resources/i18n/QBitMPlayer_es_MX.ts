@@ -562,40 +562,50 @@
         <translation>En qué idioma mostrar la aplicación, diferente a inglés: Disponible: Español.</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="193"/>
+        <location filename="../../src/main.cpp" line="194"/>
         <source>Tell an existing %1 instance to play the next song if any.</source>
         <translation>Pedirle a una instancia existente de %1 que reproduzca la siguiente canción si hay.</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="198"/>
+        <location filename="../../src/main.cpp" line="199"/>
         <source>Tell an existing %1 instance to play the previous song if any.</source>
         <translation>Pedirle a una instancia existente de %1 que reproduzca la canción anterior si hay.</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="203"/>
+        <location filename="../../src/main.cpp" line="204"/>
         <source>Tell an existing %1 instance to resume or pause the player.</source>
         <translation>Pedirle a una instancia existente de %1 que continúe o pause el reproductor.</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="208"/>
+        <location filename="../../src/main.cpp" line="209"/>
         <source>Tell an existing %1 instance to stop the player.</source>
         <translation>Pedirle a una instancia existente de %1 que detenga el reproductor.</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="218"/>
+        <location filename="../../src/main.cpp" line="220"/>
         <source>Question</source>
         <translation>Pregunta</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="220"/>
-        <location filename="../../src/main.cpp" line="247"/>
+        <location filename="../../src/main.cpp" line="222"/>
+        <location filename="../../src/main.cpp" line="249"/>
+        <location filename="../../src/main.cpp" line="259"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../../src/main.cpp" line="248"/>
+        <location filename="../../src/main.cpp" line="250"/>
+        <source>Unable to register DBus service. Play won&apos;t respond to IPC commands.</source>
+        <translation>Incapaz de registrar el servicio DBus. El reproductor no responderá a comandos IPC.</translation>
+    </message>
+    <message>
+        <location filename="../../src/main.cpp" line="260"/>
+        <source>Unable to register listener object. Play won&apos;t respond to IPC commands.</source>
+        <translation>Incapaz de registrar el objeto que escuchará. El reproductor no responderá a comandos IPC.</translation>
+    </message>
+    <message>
         <source>Unable to register DBus service. Play won&apos;t respond to IPC.</source>
-        <translation>Incapz de registrar el servicio DBus. El reproductor no responderá a IPC.</translation>
+        <translation type="vanished">Incapz de registrar el servicio DBus. El reproductor no responderá a IPC.</translation>
     </message>
 </context>
 <context>
