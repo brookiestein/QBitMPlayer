@@ -63,11 +63,11 @@
         <location filename="../../src/mainwindow.ui" line="159"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="353"/>
         <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="353"/>
-        <location filename="../../src/mainwindow.cpp" line="185"/>
-        <location filename="../../src/mainwindow.cpp" line="299"/>
-        <location filename="../../src/mainwindow.cpp" line="694"/>
-        <location filename="../../src/mainwindow.cpp" line="822"/>
-        <location filename="../../src/mainwindow.cpp" line="854"/>
+        <location filename="../../src/mainwindow.cpp" line="191"/>
+        <location filename="../../src/mainwindow.cpp" line="305"/>
+        <location filename="../../src/mainwindow.cpp" line="722"/>
+        <location filename="../../src/mainwindow.cpp" line="850"/>
+        <location filename="../../src/mainwindow.cpp" line="882"/>
         <source>Play</source>
         <translation>Reproducir</translation>
     </message>
@@ -75,7 +75,7 @@
         <location filename="../../src/mainwindow.ui" line="169"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="354"/>
         <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="354"/>
-        <location filename="../../src/mainwindow.cpp" line="191"/>
+        <location filename="../../src/mainwindow.cpp" line="197"/>
         <source>Stop</source>
         <translation>Detener</translation>
     </message>
@@ -83,7 +83,7 @@
         <location filename="../../src/mainwindow.ui" line="179"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="355"/>
         <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="355"/>
-        <location filename="../../src/mainwindow.cpp" line="197"/>
+        <location filename="../../src/mainwindow.cpp" line="203"/>
         <source>Previous</source>
         <translation>Anterior</translation>
     </message>
@@ -91,7 +91,7 @@
         <location filename="../../src/mainwindow.ui" line="189"/>
         <location filename="../../build/Desktop-Debug/qbitmplayer_autogen/include/ui_mainwindow.h" line="356"/>
         <location filename="../../build/release/qbitmplayer_autogen/include/ui_mainwindow.h" line="356"/>
-        <location filename="../../src/mainwindow.cpp" line="203"/>
+        <location filename="../../src/mainwindow.cpp" line="209"/>
         <source>Next</source>
         <translation>Siguiente</translation>
     </message>
@@ -215,7 +215,7 @@
     </message>
     <message>
         <location filename="../../src/mainwindow.cpp" line="81"/>
-        <location filename="../../src/mainwindow.cpp" line="917"/>
+        <location filename="../../src/mainwindow.cpp" line="945"/>
         <source>Current volume level: %1%</source>
         <translation>Nivel de volumen actual: %1%</translation>
     </message>
@@ -224,25 +224,27 @@
         <translation type="vanished">Ninguna</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="318"/>
+        <location filename="../../src/mainwindow.cpp" line="324"/>
+        <location filename="../../src/mainwindow.cpp" line="700"/>
+        <location filename="../../src/mainwindow.cpp" line="705"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="323"/>
-        <location filename="../../src/mainwindow.cpp" line="704"/>
-        <location filename="../../src/mainwindow.cpp" line="825"/>
-        <location filename="../../src/mainwindow.cpp" line="877"/>
+        <location filename="../../src/mainwindow.cpp" line="329"/>
+        <location filename="../../src/mainwindow.cpp" line="732"/>
+        <location filename="../../src/mainwindow.cpp" line="853"/>
+        <location filename="../../src/mainwindow.cpp" line="905"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="185"/>
-        <location filename="../../src/mainwindow.cpp" line="441"/>
-        <location filename="../../src/mainwindow.cpp" line="833"/>
-        <location filename="../../src/mainwindow.cpp" line="836"/>
-        <location filename="../../src/mainwindow.cpp" line="839"/>
-        <location filename="../../src/mainwindow.cpp" line="874"/>
+        <location filename="../../src/mainwindow.cpp" line="191"/>
+        <location filename="../../src/mainwindow.cpp" line="447"/>
+        <location filename="../../src/mainwindow.cpp" line="861"/>
+        <location filename="../../src/mainwindow.cpp" line="864"/>
+        <location filename="../../src/mainwindow.cpp" line="867"/>
+        <location filename="../../src/mainwindow.cpp" line="902"/>
         <source>Pause</source>
         <translation>Pausar</translation>
     </message>
@@ -251,7 +253,7 @@
         <translation type="vanished">Archivos de audio (*.acc *.avi *.mp3 *.wav)</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="569"/>
+        <location filename="../../src/mainwindow.cpp" line="575"/>
         <source>Open Audio Files</source>
         <translation>Abrir Archivos de Audio</translation>
     </message>
@@ -261,9 +263,9 @@
     </message>
     <message>
         <location filename="../../src/mainwindow.cpp" line="49"/>
-        <location filename="../../src/mainwindow.cpp" line="472"/>
-        <location filename="../../src/mainwindow.cpp" line="689"/>
-        <location filename="../../src/mainwindow.cpp" line="713"/>
+        <location filename="../../src/mainwindow.cpp" line="478"/>
+        <location filename="../../src/mainwindow.cpp" line="717"/>
+        <location filename="../../src/mainwindow.cpp" line="741"/>
         <source>Playlist: Unnamed</source>
         <translation>Lista de Reproducción: Sin nombre</translation>
     </message>
@@ -279,7 +281,7 @@
     </message>
     <message>
         <location filename="../../src/mainwindow.cpp" line="53"/>
-        <location filename="../../src/mainwindow.cpp" line="896"/>
+        <location filename="../../src/mainwindow.cpp" line="924"/>
         <source>Neither current music nor current playlist repeats.</source>
         <translation>Ni la canción actual ni la playlist actual se repiten.</translation>
     </message>
@@ -288,84 +290,90 @@
         <translation type="vanished">Archivos de audio (*.aac *.avi *.mp3 *.opus *.wav)</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="507"/>
+        <location filename="../../src/mainwindow.cpp" line="513"/>
         <source>Loaded all music files from directory: %1.</source>
         <translation>Se cargaron todas las canciones desde la carpeta: %1.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="516"/>
+        <location filename="../../src/mainwindow.cpp" line="522"/>
         <source>Audio files (</source>
         <translation>Archivos de audio (</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="574"/>
+        <location filename="../../src/mainwindow.cpp" line="580"/>
         <source>Open Music Directory</source>
         <translation>Abrir Carpeta de Música</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="585"/>
+        <location filename="../../src/mainwindow.cpp" line="591"/>
         <source>Unnamed</source>
         <translation>Sin nombre</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="587"/>
+        <location filename="../../src/mainwindow.cpp" line="593"/>
         <source>Playlist: %1*</source>
         <translation>Lista de Reproducción: %1*</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="588"/>
+        <location filename="../../src/mainwindow.cpp" line="594"/>
         <source>Playlist is currently not saved.</source>
         <translation>La Lista de Reproducción no está guardada actualmente.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="665"/>
-        <location filename="../../src/mainwindow.cpp" line="760"/>
+        <location filename="../../src/mainwindow.cpp" line="671"/>
+        <location filename="../../src/mainwindow.cpp" line="788"/>
         <source>Playlist: %1</source>
         <translation>Lista de Reproducción: %1</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="705"/>
+        <location filename="../../src/mainwindow.cpp" line="694"/>
+        <source>Now playing:
+%1</source>
+        <translation>Reproduciendo ahora:\n%1</translation>
+    </message>
+    <message>
+        <location filename="../../src/mainwindow.cpp" line="733"/>
         <source>You must first load some music files.</source>
         <translation>Primero debes cargar algunos archivos de música.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="715"/>
+        <location filename="../../src/mainwindow.cpp" line="743"/>
         <source>Give it a name</source>
         <translation>Dale un nombre</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="716"/>
+        <location filename="../../src/mainwindow.cpp" line="744"/>
         <source>How should we call this awesome playlist?</source>
         <translation>¿Cómo deberíamos llamar esta increíble lista de reproducción?</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="743"/>
+        <location filename="../../src/mainwindow.cpp" line="771"/>
         <source>Oops</source>
         <translation>Oops</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="744"/>
+        <location filename="../../src/mainwindow.cpp" line="772"/>
         <source>It seems that this playlist already exists. Would you like to replace it?</source>
         <translation>Parece que esta lista de reproducción ya existe. ¿Te gustaría reemplazarla?</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="768"/>
+        <location filename="../../src/mainwindow.cpp" line="796"/>
         <source>Yay!</source>
         <translation>¡Hurra!</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="887"/>
-        <location filename="../../src/mainwindow.cpp" line="889"/>
+        <location filename="../../src/mainwindow.cpp" line="915"/>
+        <location filename="../../src/mainwindow.cpp" line="917"/>
         <source>1</source>
         <translation>1</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="888"/>
+        <location filename="../../src/mainwindow.cpp" line="916"/>
         <source>Current music will repeat forever.</source>
         <translation>La canción actual se repetirá para siempre.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="765"/>
+        <location filename="../../src/mainwindow.cpp" line="793"/>
         <source>Now you can play all the awesome music %1 has!</source>
         <translation>Ahora puede reproducir todas las canciones increíbles que %1 tiene!</translation>
     </message>
@@ -375,34 +383,34 @@
         <translation>Haz click para incrementar el volumen en 25%.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="179"/>
-        <location filename="../../src/mainwindow.cpp" line="233"/>
+        <location filename="../../src/mainwindow.cpp" line="185"/>
+        <location filename="../../src/mainwindow.cpp" line="239"/>
         <source>Hide</source>
         <translation>Ocultar</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="179"/>
-        <location filename="../../src/mainwindow.cpp" line="236"/>
+        <location filename="../../src/mainwindow.cpp" line="185"/>
+        <location filename="../../src/mainwindow.cpp" line="242"/>
         <source>Show</source>
         <translation>Mostrar</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="209"/>
+        <location filename="../../src/mainwindow.cpp" line="215"/>
         <source>Exit</source>
         <translation>Salir</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="275"/>
+        <location filename="../../src/mainwindow.cpp" line="281"/>
         <source>Quit</source>
         <translation>Salir</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="276"/>
+        <location filename="../../src/mainwindow.cpp" line="282"/>
         <source>Are you sure you want to exit?</source>
         <translation>¿Estás seguro que deseas salir?</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="501"/>
+        <location filename="../../src/mainwindow.cpp" line="507"/>
         <source>Found directory: %1 in: %2. Looking into it...</source>
         <translation>Se encontró la carpeta: %1 en: %2. Buscando dentro...</translation>
     </message>
@@ -411,27 +419,27 @@
         <translation type="vanished">Se cargaron todas las canciones desde la carpeta: %1</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="764"/>
+        <location filename="../../src/mainwindow.cpp" line="792"/>
         <source>Playlist %1 has been updated!</source>
         <translation>¡La Lista de Reproducción %1 ha sido actualizada!</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="793"/>
+        <location filename="../../src/mainwindow.cpp" line="821"/>
         <source>Playlist Removed</source>
         <translation>Lista de Reproducción Eliminada</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="794"/>
+        <location filename="../../src/mainwindow.cpp" line="822"/>
         <source>The playlist %1 was successfully removed!</source>
         <translation>¡La lista de reproducción %1 fue eliminada satisfactoriamente!</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="853"/>
+        <location filename="../../src/mainwindow.cpp" line="881"/>
         <source>&amp;Play</source>
         <translation>&amp;Reproducir</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="826"/>
+        <location filename="../../src/mainwindow.cpp" line="854"/>
         <source>You must first load a music or choose one from the playlist.</source>
         <translation>Primero debes cargar una canción o elegir una de la lista de reproducción.</translation>
     </message>
@@ -440,7 +448,7 @@
         <translation type="vanished">&amp;Pausar</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="845"/>
+        <location filename="../../src/mainwindow.cpp" line="873"/>
         <source>Continue</source>
         <translation>Continuar</translation>
     </message>
@@ -449,7 +457,7 @@
         <translation type="vanished">Una vez</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="891"/>
+        <location filename="../../src/mainwindow.cpp" line="919"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
@@ -458,7 +466,7 @@
         <translation type="obsolete">No hay canciones anteriores para reproducir.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="877"/>
+        <location filename="../../src/mainwindow.cpp" line="905"/>
         <source>There&apos;s no next music to play.</source>
         <translation>No hay canción siguiente para reproducir.</translation>
     </message>
@@ -479,40 +487,49 @@
         <translation type="vanished">Repetir Todo</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="892"/>
+        <location filename="../../src/mainwindow.cpp" line="920"/>
         <source>Current playlist will repeat forever.</source>
         <translation>La playlist actual se repetirá para siempre.</translation>
     </message>
     <message>
-        <location filename="../../src/mainwindow.cpp" line="985"/>
+        <location filename="../../src/mainwindow.cpp" line="1013"/>
         <source>About - %1</source>
         <translation>Acerca de - %1</translation>
     </message>
 </context>
 <context>
+    <name>Notifier</name>
+    <message>
+        <location filename="../../src/notifier.cpp" line="39"/>
+        <source>An error occurred while sending the desktop notification.
+%1</source>
+        <translation>Ocurrió un error mientras se enviaba la notificación de escritorio.\n%1</translation>
+    </message>
+</context>
+<context>
     <name>Player</name>
     <message>
-        <location filename="../../src/player.cpp" line="37"/>
+        <location filename="../../src/player.cpp" line="44"/>
         <source>There&apos;s no such music at index: %1.</source>
         <translation>No hay ninguna canción en el índice: %1.</translation>
     </message>
     <message>
-        <location filename="../../src/player.cpp" line="84"/>
+        <location filename="../../src/player.cpp" line="95"/>
         <source>There isn&apos;t any music playing.</source>
         <translation>No hay ninguna canción reproduciéndose.</translation>
     </message>
     <message>
-        <location filename="../../src/player.cpp" line="95"/>
+        <location filename="../../src/player.cpp" line="106"/>
         <source>There&apos;s already a music playing.</source>
         <translation>Ya hay una canción reproduciéndose.</translation>
     </message>
     <message>
-        <location filename="../../src/player.cpp" line="100"/>
+        <location filename="../../src/player.cpp" line="111"/>
         <source>You must first open a music file.</source>
         <translation>Primero debes abrir un archivo de música.</translation>
     </message>
     <message>
-        <location filename="../../src/player.cpp" line="111"/>
+        <location filename="../../src/player.cpp" line="130"/>
         <source>There&apos;s no previous music to play.</source>
         <translation>No hay canciones anteriores para reproducir.</translation>
     </message>
