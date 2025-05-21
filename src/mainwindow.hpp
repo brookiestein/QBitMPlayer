@@ -1,6 +1,10 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
+#ifdef USE_NOTIFICATIONS
+#include "notifier.hpp"
+#endif
+
 #include <QAction>
 #include <QCloseEvent>
 #include <QDir>
@@ -132,6 +136,9 @@ public slots:
     Q_SCRIPTABLE void playPrevious();
     Q_SCRIPTABLE void playNext();
     Q_SCRIPTABLE void stop();
-#endif
+#endif // USE_IPC
+#ifdef USE_NOTIFICATIONS
+    void sendNotification(const QString &name);
+#endif // USE_NOTIFICATIONS
 };
 #endif // MAINWINDOW_HPP

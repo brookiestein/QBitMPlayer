@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentPosition(0)
 #ifdef USE_IPC
     , m_dbusConnection {QDBusConnection::sessionBus()}
-#endif
+#endif // USE_IPC
 {
     m_ui->setupUi(this);
 
@@ -142,6 +142,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_increaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeIncrease);
     connect(m_decreaseVolumeBy5Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
     connect(m_decreaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
+
+#ifdef USE_NOTIFICATIONS
+    connect(&m_player, &Player::nowPlaying, this, [this] (const QString &filename) {
+        sendNotification(musicName(filename));
+    });
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -681,6 +687,28 @@ void MainWindow::setVolumeIcon()
         m_ui->volumeIconButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeHigh));
     }
 }
+
+#ifdef USE_NOTIFICATIONS
+void MainWindow::sendNotification(const QString &name)
+{
+    const auto body = tr("Now playing:\n%1").arg(name).toStdString();
+    Notifier *notifier {nullptr};
+
+    try {
+        notifier = new Notifier(PROJECT_NAME, body.c_str());
+    } catch (NotificationException &exception) {
+        QMessageBox::critical(this, tr("Error"), exception.what());
+        return;
+    }
+
+    connect(notifier, &Notifier::errorOccurred, this, [this] (const QString &reason) {
+        QMessageBox::critical(this, tr("Error"), reason);
+    });
+
+    notifier->sendNotification();
+    delete notifier;
+}
+#endif // USE_NOTIFICATIONS
 
 void MainWindow::onClosePlayListActionRequested()
 {

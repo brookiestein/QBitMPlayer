@@ -45,6 +45,9 @@ signals:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
+#ifdef USE_NOTIFICATIONS
+    void nowPlaying(const QString &filename);
+#endif // USE_NOTIFICATIONS
 
 private:
     QStringList m_playlist;
@@ -53,6 +56,9 @@ private:
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
     bool m_autoplay;
+#ifdef USE_NOTIFICATIONS
+    bool m_currentChanged;
+#endif // USE_NOTIFICATIONS
 };
 
 #endif // PLAYER_HPP

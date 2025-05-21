@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(QBitMPlayer
-    VERSION 2.8.0
+    VERSION 2.9.0
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -22,6 +22,13 @@ if (USE_IPC)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED DBus)
 
     add_compile_definitions(USE_IPC="1")
+endif()
+
+if (USE_NOTIFICATIONS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(libs REQUIRED IMPORTED_TARGET libnotify)
+
+    add_compile_definitions(USE_NOTIFICATIONS="1")
 endif()
 
 set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
@@ -46,6 +53,14 @@ set(PROJECT_SOURCES
     ../resources.qrc
     ../resources/qbitmplayer.desktop
 )
+
+if (USE_NOTIFICATIONS)
+    set(PROJECT_SOURCES
+        ${PROJECT_SOURCES}
+        notifier.hpp
+        notifier.cpp
+    )
+endif()
 
 list(TRANSFORM PROJECT_SOURCES PREPEND "src/")
 
@@ -101,6 +116,12 @@ target_link_libraries(qbitmplayer PRIVATE
 if (USE_IPC)
     target_link_libraries(qbitmplayer PRIVATE
         Qt${QT_VERSION_MAJOR}::DBus
+    )
+endif()
+
+if (USE_NOTIFICATIONS)
+    target_link_libraries(qbitmplayer PRIVATE
+        PkgConfig::libs
     )
 endif()
 
