@@ -1,13 +1,18 @@
 # QBitMPlayer
 Music Player written in C++ &amp; Qt.
 
-## Dependencies
+## Installation
+### Binaries
+QBitMPlayer is currently available to be installed in its binary form just for [Windows](https://github.com/brookiestein/QBitMPlayer/releases). Packages will be provided for, at least, the most popular Linux distributions as well.
+
+### Installing From Source
+#### Dependencies
 1. QtWidgets
 2. QtMultimedia
 3. QtDBus (if you want support for Inter-Proccess Comunication)
 4. CMake (for building)
 
-Make sure you all those packages installed on your OS. Installation will depend on what Operating System you're running, 
+Make sure you have all those packages installed on your OS. Installation will depend on what Operating System you're running, 
 but here's a table showing how to install them in the most popular Linux distributions:
 
 |Distribution | Command                                                                        |
@@ -19,7 +24,11 @@ but here's a table showing how to install them in the most popular Linux distrib
 
 *Please make sure to execute the corresponding command with super user rights.*
 
-## How to install
+*The Qt Maintenance Tool can also be used to install all the dependencies.*
+
+**If you're using Gentoo Linux, QBitMPlayer is available in the [GURU](https://github.com/gentoo/guru) repository, just run** `emerge -a media-sound/qbitmplayer`.
+
+Once the dependencies are installed, proceed to the building:
 1. First, get the sources:
 ```
 $ git clone https://github.com/brookiestein/QBitMPlayer
@@ -30,7 +39,7 @@ $ cd QBitMPlayer
 $ cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr -DUSE_IPC=1
 $ cmake --build build --parallel
 ```
-In the second command, the `-DUSE_IPC=1` tells the project you want to have support for Inter-Proccess Communication, omit that if you don't want it.
+In the second command, the `-DUSE_IPC=1` macro tells the project you want to have support for Inter-Proccess Communication, omit that if you don't want it.
 
 3. Install
 ```
@@ -40,7 +49,7 @@ In the second command, the `-DUSE_IPC=1` tells the project you want to have supp
 
 QBitMPlayer will be installed in `/usr/bin/qbitmplayer`.
 
-This a table showing the available command line options:
+This is a table showing the available command line options:
 
 |Option            | Description
 |------------------|---------------------------------------------------------------------------------------|
