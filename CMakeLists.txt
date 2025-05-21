@@ -25,6 +25,10 @@ if (USE_IPC)
 endif()
 
 if (USE_NOTIFICATIONS)
+    if (NOT UNIX AND NOT APPLE)
+        message(FATAL_ERROR "Not a unix OS. Notifications aren't yet available.")
+    endif()
+
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(libs REQUIRED IMPORTED_TARGET libnotify)
 
