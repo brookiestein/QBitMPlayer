@@ -25,12 +25,28 @@ if (USE_IPC)
 endif()
 
 if (USE_NOTIFICATIONS)
-    if (NOT UNIX AND NOT APPLE)
-        message(FATAL_ERROR "Not a unix OS. Notifications aren't yet available.")
-    endif()
+    if (WIN32)
+        include(ExternalProject)
+        ExternalProject_Add(
+            WinToast
+            GIT_REPOSITORY "https://github.com/mohabouje/WinToast"
+            GIT_TAG "master"
+            SOURCE_DIR "${CMAKE_BINARY_DIR}/WinToast-src"
+            BINARY_DIR "${CMAKE_BINARY_DIR}/WinToast-build"
+            INSTALL_DIR "${CMAKE_BINARY_DIR}/WinToast-install"
+            CMAKE_ARGS
+                -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/WinToast-install
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND cmake -G Ninja -S ${CMAKE_BINARY_DIR}/WinToast-src -B ${CMAKE_BINARY_DIR}/WinToast-build -DCMAKE_BUILD_TYPE=Release
+            BUILD_COMMAND cmake --build ${CMAKE_BINARY_DIR}/WinToast-build
+            INSTALL_COMMAND cmake --build ${CMAKE_BINARY_DIR}/WinToast-install
+        )
 
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(libs REQUIRED IMPORTED_TARGET libnotify)
+        include_directories(${CMAKE_BINARY_DIR}/WinToast-install/include)
+    else()
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(libs REQUIRED IMPORTED_TARGET libnotify)
+    endif()
 
     add_compile_definitions(USE_NOTIFICATIONS="1")
 endif()
@@ -127,6 +143,10 @@ if (USE_NOTIFICATIONS)
     target_link_libraries(qbitmplayer PRIVATE
         PkgConfig::libs
     )
+endif()
+
+if (WIN32)
+    add_dependencies(qbitmplayer WinToast)
 endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
