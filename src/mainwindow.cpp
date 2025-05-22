@@ -691,15 +691,30 @@ void MainWindow::setVolumeIcon()
 #ifdef USE_NOTIFICATIONS
 void MainWindow::sendNotification(const QString &name)
 {
-    const auto body = tr("Now playing:\n%1").arg(name).toStdString();
     Notifier *notifier {nullptr};
+#ifdef Q_OS_LINUX
+    const auto body = tr("Now playing:\n%1").arg(name).toStdString();
 
     try {
         notifier = new Notifier(PROJECT_NAME, body.c_str());
-    } catch (NotificationException &exception) {
-        QMessageBox::critical(this, tr("Error"), exception.what());
+    } catch (NotificationException &e) {
+        QMessageBox::critical(this, tr("Error"), e.what());
         return;
     }
+#elif defined(Q_OS_WIN)
+    std::wstring body {
+        tr("Now playing: %1").arg(name).toStdWString()
+    };
+
+    try {
+        notifier = new Notifier(L"" PROJECT_NAME, body);
+    } catch (NotificationException &e) {
+        QMessageBox::critical(this, tr("Error"), e.what());
+        return;
+    }
+#else
+    return;
+#endif
 
     connect(notifier, &Notifier::errorOccurred, this, [this] (const QString &reason) {
         QMessageBox::critical(this, tr("Error"), reason);

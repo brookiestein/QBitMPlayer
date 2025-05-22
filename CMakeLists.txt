@@ -33,16 +33,15 @@ if (USE_NOTIFICATIONS)
             GIT_TAG "master"
             SOURCE_DIR "${CMAKE_BINARY_DIR}/WinToast-src"
             BINARY_DIR "${CMAKE_BINARY_DIR}/WinToast-build"
-            INSTALL_DIR "${CMAKE_BINARY_DIR}/WinToast-install"
             CMAKE_ARGS
                 -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/WinToast-install
             UPDATE_COMMAND ""
             CONFIGURE_COMMAND cmake -G Ninja -S ${CMAKE_BINARY_DIR}/WinToast-src -B ${CMAKE_BINARY_DIR}/WinToast-build -DCMAKE_BUILD_TYPE=Release
             BUILD_COMMAND cmake --build ${CMAKE_BINARY_DIR}/WinToast-build
-            INSTALL_COMMAND cmake --build ${CMAKE_BINARY_DIR}/WinToast-install
+            INSTALL_COMMAND ""
         )
 
-        include_directories(${CMAKE_BINARY_DIR}/WinToast-install/include)
+        include_directories(${CMAKE_BINARY_DIR}/WinToast-src/include)
     else()
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(libs REQUIRED IMPORTED_TARGET libnotify)
@@ -140,13 +139,15 @@ if (USE_IPC)
 endif()
 
 if (USE_NOTIFICATIONS)
-    target_link_libraries(qbitmplayer PRIVATE
-        PkgConfig::libs
-    )
-endif()
-
-if (WIN32)
-    add_dependencies(qbitmplayer WinToast)
+    if (NOT WIN32)
+        target_link_libraries(qbitmplayer PRIVATE
+            PkgConfig::libs
+        )
+    else()
+        add_dependencies(qbitmplayer WinToast)
+        target_link_libraries(qbitmplayer PRIVATE ${CMAKE_BINARY_DIR}/WinToast-build/WinToast.lib)
+        set_target_properties(qbitmplayer PROPERTIES WIN32_EXECUTABLE ON)
+    endif()
 endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
