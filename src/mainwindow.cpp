@@ -177,7 +177,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     if (minimizeToSystray) {
         setVisible(false);
-        m_showHideAction->setText(tr("Show"));
+        m_showHideSystrayAction->setText(tr("Show"));
         event->accept();
     } else {
         QMainWindow::closeEvent(event);
@@ -193,9 +193,9 @@ void MainWindow::showEvent(QShowEvent *event)
     }
 
     firstTime = false;
-    m_showHideAction = new QAction(isVisible() ? tr("Hide") : tr("Show"), this);
+    m_showHideSystrayAction = new QAction(isVisible() ? tr("Hide") : tr("Show"), this);
 
-    auto *playPauseAction = new QAction(
+    m_playPauseSystrayAction = new QAction(
         m_player.isPlaying()
             ? QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause)
             : QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart),
@@ -229,11 +229,11 @@ void MainWindow::showEvent(QShowEvent *event)
 
     auto *systrayMenu = new QMenu(this);
 
-    systrayMenu->addAction(m_showHideAction);
+    systrayMenu->addAction(m_showHideSystrayAction);
     systrayMenu->addSeparator();
 
     systrayMenu->addActions({
-        playPauseAction,
+        m_playPauseSystrayAction,
         stopAction,
         previousAction,
         nextAction
@@ -244,17 +244,26 @@ void MainWindow::showEvent(QShowEvent *event)
     systrayMenu->addAction(exitAction);
     m_systray.setContextMenu(systrayMenu);
 
-    connect(m_showHideAction, &QAction::triggered, this, [this] ([[maybe_unused]] bool checked) {
+    connect(m_showHideSystrayAction, &QAction::triggered, this, [this] ([[maybe_unused]] bool checked) {
         if (isVisible()) {
             setVisible(false);
-            m_showHideAction->setText(tr("Show"));
+            m_showHideSystrayAction->setText(tr("Show"));
         } else {
             setVisible(true);
-            m_showHideAction->setText(tr("Hide"));
+            m_showHideSystrayAction->setText(tr("Hide"));
         }
     });
 
-    connect(playPauseAction, &QAction::triggered, this, &MainWindow::playPauseHelper);
+    connect(m_playPauseSystrayAction, &QAction::triggered, this, [this] () {
+        playPauseHelper();
+        if (m_player.isPlaying()) {
+            m_playPauseSystrayAction->setText(tr("Pause"));
+            m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+        } else {
+            m_playPauseSystrayAction->setText(tr("Play"));
+            m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
+        }
+    });
     connect(stopAction, &QAction::triggered, this, &MainWindow::onStopPlayer);
     connect(previousAction, &QAction::triggered, this, &MainWindow::onPlayPrevious);
     connect(nextAction, &QAction::triggered, this, &MainWindow::onPlayNext);
@@ -276,7 +285,7 @@ void MainWindow::showEvent(QShowEvent *event)
             case QSystemTrayIcon::Trigger:
                 break;
             case QSystemTrayIcon::MiddleClick:
-                m_showHideAction->trigger();
+                m_showHideSystrayAction->trigger();
                 break;
             }
         });
@@ -885,20 +894,34 @@ void MainWindow::onPlayButtonClicked()
 
         m_player.seek(m_currentPosition);
         m_player.play();
+
         snder->setText(tr("Pause"));
+        m_playPauseSystrayAction->setText(tr("Pause"));
+
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+        m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+
         m_currentPosition = 0;
     } else if (not snder->text().contains(tr("Pause"))) {
         m_player.seek(m_currentPosition);
         m_player.play();
+
         snder->setText(tr("Pause"));
+        m_playPauseSystrayAction->setText(tr("Pause"));
+
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+        m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
+
         m_currentPosition = 0;
     } else {
         m_currentPosition = m_player.currentPosition();
         m_player.pause();
+
         snder->setText(tr("Continue"));
+        m_playPauseSystrayAction->setText(tr("Continue"));
+
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
+        m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     }
 }
 

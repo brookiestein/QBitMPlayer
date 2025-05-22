@@ -54,7 +54,8 @@ protected:
 private:
     Ui::MainWindow *m_ui;
     QSystemTrayIcon m_systray;
-    QAction *m_showHideAction;
+    QAction *m_showHideSystrayAction;
+    QAction *m_playPauseSystrayAction;
     QAction *m_addSongToPlaylist;
     QAction *m_removeSongAction;
 
