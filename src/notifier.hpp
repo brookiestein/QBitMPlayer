@@ -2,9 +2,15 @@
 #define NOTIFIER_HPP
 
 #include <exception>
+#include <QtGlobal>
+#ifdef Q_OS_LINUX
 #include <libnotify/notification.h>
 #include <libnotify/notify.h>
+#elif defined(Q_OS_WIN)
+#include "wintoastlib.h"
+#endif
 #include <QObject>
+#include <string>
 
 class NotificationException : public std::exception
 {
@@ -14,19 +20,38 @@ public:
     const char *what();
 };
 
+#ifdef Q_OS_WIN
+class WinToastHandler : public WinToastLib::IWinToastHandler
+{
+public:
+    WinToastHandler();
+    void toastActivated() const override;
+    void toastActivated(int actionIndex) const override;
+    void toastActivated(std::wstring response) const override;
+    void toastDismissed(WinToastLib::IWinToastHandler::WinToastDismissalReason reason) const override;
+    void toastFailed() const override;
+};
+#endif
+
 class Notifier : public QObject
 {
     Q_OBJECT
+public:
+#ifdef Q_OS_LINUX
     NotifyNotification *m_notification;
     const char *m_summary;
     const char *m_body;
     const char *m_icon;
-public:
     explicit Notifier(const char *summary,
                       const char *body,
                       const char *icon = nullptr,
                       QObject *parent = nullptr);
     ~Notifier();
+#elif defined(Q_OS_WIN)
+    std::wstring m_title;
+    std::wstring m_body;
+    explicit Notifier(const std::wstring &title, const std::wstring &body, QObject *parent = nullptr);
+#endif
     void sendNotification();
 signals:
     void errorOccurred(const QString &reason);
