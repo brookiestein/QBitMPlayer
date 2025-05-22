@@ -176,7 +176,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     m_settings->endGroup();
 
     if (minimizeToSystray) {
-        hide();
+        setVisible(false);
         m_showHideAction->setText(tr("Show"));
         event->accept();
     } else {
@@ -186,6 +186,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::showEvent(QShowEvent *event)
 {
+    static bool firstTime {true};
+    if (not firstTime) {
+        QWidget::showEvent(event);
+        return;
+    }
+
+    firstTime = false;
     m_showHideAction = new QAction(isVisible() ? tr("Hide") : tr("Show"), this);
 
     auto *playPauseAction = new QAction(
@@ -194,13 +201,13 @@ void MainWindow::showEvent(QShowEvent *event)
             : QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart),
         m_player.isPlaying() ? tr("Pause") : tr("Play"),
         this
-        );
+    );
 
     auto *stopAction = new QAction(
         QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStop),
         tr("Stop"),
         this
-        );
+    );
 
     auto *previousAction = new QAction(
         QIcon::fromTheme(QIcon::ThemeIcon::MediaSeekBackward),
@@ -218,7 +225,7 @@ void MainWindow::showEvent(QShowEvent *event)
         QIcon::fromTheme(QIcon::ThemeIcon::WindowClose),
         tr("Exit"),
         this
-        );
+    );
 
     auto *systrayMenu = new QMenu(this);
 
@@ -231,19 +238,19 @@ void MainWindow::showEvent(QShowEvent *event)
         previousAction,
         nextAction
     });
+
     systrayMenu->addSeparator();
 
     systrayMenu->addAction(exitAction);
     m_systray.setContextMenu(systrayMenu);
 
-    // TEST this feature.
     connect(m_showHideAction, &QAction::triggered, this, [this] ([[maybe_unused]] bool checked) {
         if (isVisible()) {
-            this->show();
-            m_showHideAction->setText(tr("Hide"));
-        } else {
-            this->hide();
+            setVisible(false);
             m_showHideAction->setText(tr("Show"));
+        } else {
+            setVisible(true);
+            m_showHideAction->setText(tr("Hide"));
         }
     });
 
@@ -275,6 +282,7 @@ void MainWindow::showEvent(QShowEvent *event)
         });
 
     m_systray.show();
+
     event->ignore(); // Let QMainWindow do its stuff.
 }
 
