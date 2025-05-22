@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
                 QObject::tr("Language: %1 couldn't be loaded. "
                             "Would you like to continue with English?").arg(lang),
                 true
-                );
+            );
 
             if (reply != QMessageBox::Yes) {
                 return 1;
@@ -117,6 +117,12 @@ int main(int argc, char *argv[])
         {
             QSettings settings(w.createEnvironment(), QSettings::IniFormat);
             settings.beginGroup("WindowSettings");
+
+            // If MinimizeToSystray == false, then do close on last window closed.
+            QApplication::setQuitOnLastWindowClosed(
+                not settings.value("MinimizeToSystray", false).toBool()
+            );
+
             int width = settings.value("Width", 1024).toInt();
             int height = settings.value("Height", 530).toInt();
             /* In order to show the window maximized both
@@ -134,6 +140,7 @@ int main(int argc, char *argv[])
             settings.endGroup();
 
             w.setGeometry(w.x(), w.y(), width, height);
+
         }
 
         if (maximized) {

@@ -1,10 +1,6 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
-#ifdef USE_NOTIFICATIONS
-#include "notifier.hpp"
-#endif
-
 #include <QAction>
 #include <QCloseEvent>
 #include <QDir>
@@ -58,6 +54,7 @@ protected:
 private:
     Ui::MainWindow *m_ui;
     QSystemTrayIcon m_systray;
+    QAction *m_showHideAction;
     QAction *m_addSongToPlaylist;
     QAction *m_removeSongAction;
 

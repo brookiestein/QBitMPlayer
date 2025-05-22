@@ -2,15 +2,18 @@
 #define NOTIFIER_HPP
 
 #include <exception>
-#include <QtGlobal>
-#ifdef Q_OS_LINUX
-#include <libnotify/notification.h>
-#include <libnotify/notify.h>
-#elif defined(Q_OS_WIN)
-#include "wintoastlib.h"
-#endif
 #include <QObject>
+#ifdef __linux__
+extern "C" {
+    #undef signals
+        #include <libnotify/notify.h>
+        #include <libnotify/notification.h>
+    #define signals Q_SIGNALS
+}
+#elif defined(WIN32) || defined(_WIN32)
+#include "wintoastlib.h"
 #include <string>
+#endif
 
 class NotificationException : public std::exception
 {

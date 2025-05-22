@@ -15,6 +15,9 @@
 #include "config.hpp"
 #include "playlistchooser.hpp"
 #include "settings.hpp"
+#ifdef USE_NOTIFICATIONS
+    #include "notifier.hpp"
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -174,6 +177,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     if (minimizeToSystray) {
         hide();
+        m_showHideAction->setText(tr("Show"));
         event->accept();
     } else {
         QMainWindow::closeEvent(event);
@@ -182,7 +186,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::showEvent(QShowEvent *event)
 {
-    auto *hideShowAction = new QAction(isVisible() ? tr("Hide") : tr("Show"), this);
+    m_showHideAction = new QAction(isVisible() ? tr("Hide") : tr("Show"), this);
 
     auto *playPauseAction = new QAction(
         m_player.isPlaying()
@@ -218,7 +222,7 @@ void MainWindow::showEvent(QShowEvent *event)
 
     auto *systrayMenu = new QMenu(this);
 
-    systrayMenu->addAction(hideShowAction);
+    systrayMenu->addAction(m_showHideAction);
     systrayMenu->addSeparator();
 
     systrayMenu->addActions({
@@ -233,13 +237,13 @@ void MainWindow::showEvent(QShowEvent *event)
     m_systray.setContextMenu(systrayMenu);
 
     // TEST this feature.
-    connect(hideShowAction, &QAction::triggered, this, [this, &hideShowAction] ([[maybe_unused]] bool checked) {
+    connect(m_showHideAction, &QAction::triggered, this, [this] ([[maybe_unused]] bool checked) {
         if (isVisible()) {
-            show();
-            hideShowAction->setText(tr("Hide"));
+            this->show();
+            m_showHideAction->setText(tr("Hide"));
         } else {
-            hide();
-            hideShowAction->setText(tr("Show"));
+            this->hide();
+            m_showHideAction->setText(tr("Show"));
         }
     });
 
@@ -253,7 +257,7 @@ void MainWindow::showEvent(QShowEvent *event)
         &m_systray,
         &QSystemTrayIcon::activated,
         this,
-        [this, &hideShowAction] (QSystemTrayIcon::ActivationReason reason) {
+        [this] (QSystemTrayIcon::ActivationReason reason) {
             switch (reason)
             {
             case QSystemTrayIcon::Unknown:
@@ -265,7 +269,7 @@ void MainWindow::showEvent(QShowEvent *event)
             case QSystemTrayIcon::Trigger:
                 break;
             case QSystemTrayIcon::MiddleClick:
-                hideShowAction->trigger();
+                m_showHideAction->trigger();
                 break;
             }
         });

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(QBitMPlayer
-    VERSION 2.9.0
+    VERSION 2.9.1
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -75,9 +75,9 @@ set(PROJECT_SOURCES
 
 if (USE_NOTIFICATIONS)
     set(PROJECT_SOURCES
-        ${PROJECT_SOURCES}
         notifier.hpp
         notifier.cpp
+        ${PROJECT_SOURCES}
     )
 endif()
 

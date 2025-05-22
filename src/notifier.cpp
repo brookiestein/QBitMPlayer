@@ -72,8 +72,12 @@ void Notifier::sendNotification()
     templ.setTextField(m_body, WinToastLib::WinToastTemplate::SecondLine);
 
     const auto toastId = WinToastLib::WinToast::instance()->showToast(templ, handler, &error);
-    if (toastId < 0)
-        emit errorOccurred(tr("An error occurred while sending the desktop notification."));
+    if (toastId < 0) {
+        auto message = tr("An error occurred while sending the desktop notification.");
+        switch (error)
+        {
+        }
+    }
     delete handler;
 }
 
