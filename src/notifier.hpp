@@ -51,7 +51,7 @@ public:
                       QObject *parent = nullptr);
     ~Notifier();
 #elif defined(Q_OS_WIN)
-    auto *m_winToast = WinToastLib::WinToast::instance();
+    WinToastLib::WinToast *m_winToast = WinToastLib::WinToast::instance();
     std::wstring m_title;
     std::wstring m_body;
     explicit Notifier(const std::wstring &title, const std::wstring &body, QObject *parent = nullptr);

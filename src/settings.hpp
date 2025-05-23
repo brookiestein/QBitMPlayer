@@ -18,15 +18,15 @@ class Settings : public QWidget
 {
     Q_OBJECT
 
-    QString createEnvironment(
-        const QString &location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-    );
     void loadPlaylists();
     void setInitialValues();
 
 public:
     explicit Settings(QWidget *parent = nullptr);
     ~Settings();
+    static QString createEnvironment(
+        const QString &location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+    );
 
 protected:
     void closeEvent(QCloseEvent *event) override;

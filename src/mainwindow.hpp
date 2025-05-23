@@ -39,11 +39,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QString createEnvironment(
-        const QString &location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-                                  + QDir::separator()
-                                  + PROJECT_NAME
-    );
     void loadPlaylist(const QString &playlistName);
     void setVolumeIcon();
 

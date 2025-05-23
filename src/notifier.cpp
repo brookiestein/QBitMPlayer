@@ -102,6 +102,6 @@ void WinToastHandler::toastDismissed([[maybe_unused]] IWinToastHandler::WinToast
 
 void WinToastHandler::toastFailed() const
 {
-    emit errorOccurred(tr("Desktop notification failed to be sent."));
+    qCritical().noquote() << Notifier::tr("Desktop notification failed to be sent.");
 }
 #endif

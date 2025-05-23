@@ -16,6 +16,7 @@
 
 #include "config.hpp"
 #include "player.hpp"
+#include "settings.hpp"
 
 const QMap<QString, QString> availableLanguages {
     { "es", ":/resources/i18n/QBitMPlayer_es_MX.qm" },
@@ -115,7 +116,7 @@ int main(int argc, char *argv[])
 #endif // USE_IPC
 
         {
-            QSettings settings(w.createEnvironment(), QSettings::IniFormat);
+            QSettings settings(Settings::createEnvironment(), QSettings::IniFormat);
             settings.beginGroup("WindowSettings");
 
             // If MinimizeToSystray == false, then do close on last window closed.

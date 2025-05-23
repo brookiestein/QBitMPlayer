@@ -63,10 +63,10 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->playlistWidget->addAction(m_addSongToPlaylist);
     m_ui->playlistWidget->addAction(m_removeSongAction);
 
-    m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
+    m_settings = new QSettings(Settings::createEnvironment(), QSettings::IniFormat, this);
 
     m_playlistSettings = new QSettings(
-        createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
+        Settings::createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
         QSettings::IniFormat,
         this);
 
@@ -307,18 +307,6 @@ void MainWindow::onQuit()
         auto *app = QApplication::instance();
         app->quit();
     }
-}
-
-QString MainWindow::createEnvironment(const QString &location)
-{
-    QDir d;
-    if (not d.exists(location)) {
-        d.mkpath(location);
-    }
-
-    auto filename = QString("%1%2%3")
-                        .arg(location, QDir::separator(), PROJECT_NAME".conf");
-    return filename;
 }
 
 void MainWindow::resetControls()
