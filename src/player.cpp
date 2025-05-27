@@ -1,5 +1,7 @@
 #include "player.hpp"
 
+#include <QAudioDevice>
+#include <QDebug>
 #include <QUrl>
 
 Player::Player(const QStringList &playlist, QObject *parent)
@@ -59,6 +61,11 @@ void Player::setAutoPlay(bool autoPlay)
     m_autoplay = autoPlay;
 }
 
+void Player::setAudioDevice(QAudioDevice device)
+{
+    m_mediaPlayer->audioOutput()->setDevice(device);
+}
+
 const QString &Player::currentMusicFilename() const
 {
     return m_currentMusicFilename;
@@ -72,6 +79,11 @@ qint64 Player::currentPosition() const
 qint64 Player::currentIndex() const
 {
     return m_currentMusicIndex;
+}
+
+qint64 Player::currentDuration() const
+{
+    return m_currentMusicDuration;
 }
 
 bool Player::isPlaying() const
@@ -113,6 +125,7 @@ bool Player::play()
     }
 
     m_mediaPlayer->play();
+    m_currentMusicDuration = m_mediaPlayer->duration();
 
 #ifdef USE_NOTIFICATIONS
     if (m_currentChanged) {
@@ -159,6 +172,8 @@ void Player::stop()
 
 void Player::seek(qint64 position)
 {
+    if (position < 0 or position > m_mediaPlayer->duration())
+        return;
     m_mediaPlayer->setPosition(position);
 }
 
@@ -178,7 +193,7 @@ void Player::errorOcurred(QMediaPlayer::Error err, const QString &errorString)
 
 void Player::onDurationChanged(qint64 duration)
 {
-    emit durationChanged(m_mediaPlayer->duration() / 1'000); /* Emit just seconds */
+    emit durationChanged(duration / 1'000); /* Emit just seconds */
 }
 
 void Player::mediaStatusChanged(QMediaPlayer::MediaStatus status)

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QListWidgetItem>
 #include <QMainWindow>
+#include <QMediaDevices>
 #include <QSettings>
 #include <QShortcut>
 #include <QShowEvent>
@@ -33,6 +34,8 @@ class MainWindow : public QMainWindow
     QDBusConnection m_dbusConnection;
 #endif
 
+    void clearAudioOutputs();
+    void setAudioOutputs();
     void resetControls();
     QString musicName(const QString &filename);
 
@@ -48,9 +51,11 @@ protected:
 
 private:
     Ui::MainWindow *m_ui;
+    QMediaDevices m_mediaDevices;
     QSystemTrayIcon m_systray;
     QAction *m_showHideSystrayAction;
     QAction *m_playPauseSystrayAction;
+    QAction *m_stopSystrayAction;
     QAction *m_addSongToPlaylist;
     QAction *m_removeSongAction;
 
@@ -100,6 +105,7 @@ private slots:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
+    void onChangeAudioDevice([[maybe_unused]] bool checked);
     void onPlaylistItemDoubleClicked(QListWidgetItem *item);
     void onRemoveSongActionTriggered([[maybe_unused]] bool triggered);
     QStringList findFiles(const QString &dir, const QStringList &filters);
@@ -118,6 +124,8 @@ private slots:
     void onAutoRepeatButtonClicked();
     void onSeekSliderPressed();
     void onSeekSliderReleased();
+    void onSeekBackwardButtonClicked();
+    void onSeekForwardButtonClicked();
     void onVolumeSliderValueChanged(int value);
     void onVolumeIconButtonClicked();
     void onVolumeIncrease();

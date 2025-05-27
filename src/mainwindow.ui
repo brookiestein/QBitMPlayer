@@ -152,107 +152,133 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="musicControlsHorizontalLayout">
+         <layout class="QHBoxLayout" name="controlsHorizontalLayout" stretch="1,1,1,0">
           <item>
-           <widget class="QPushButton" name="playButton">
-            <property name="text">
-             <string>Play</string>
-            </property>
-            <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="playStopVerticalLayout">
+            <item>
+             <widget class="QPushButton" name="playButton">
+              <property name="text">
+               <string>Play</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="stopButton">
+              <property name="text">
+               <string>Stop</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::MediaPlaybackStop"/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="stopButton">
-            <property name="text">
-             <string>Stop</string>
-            </property>
-            <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::MediaPlaybackStop"/>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="ChangeMusicVerticalLayout">
+            <item>
+             <widget class="QPushButton" name="previousButton">
+              <property name="text">
+               <string>Previous</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::MediaSeekBackward"/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="nextButton">
+              <property name="text">
+               <string>Next</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::MediaSeekForward"/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="previousButton">
-            <property name="text">
-             <string>Previous</string>
-            </property>
-            <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::MediaSeekBackward"/>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="seekVerticalLayout">
+            <item>
+             <widget class="QPushButton" name="seekBackwardButton">
+              <property name="text">
+               <string>Seek Backward</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::MediaSkipBackward"/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="seekForwardButton">
+              <property name="text">
+               <string>Seek Forward</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::MediaSkipForward"/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="nextButton">
-            <property name="text">
-             <string>Next</string>
-            </property>
-            <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::MediaSeekForward"/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="autoRepeatButton">
-            <property name="text">
-             <string>Auto Repeat</string>
-            </property>
-            <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::SystemReboot"/>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QPushButton" name="autoRepeatButton">
+              <property name="text">
+               <string>Auto Repeat</string>
+              </property>
+              <property name="icon">
+               <iconset theme="QIcon::ThemeIcon::SystemReboot"/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="volumeHorizontalLayout">
+              <item>
+               <widget class="QLabel" name="volumeLabel">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Volume:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="volumeSlider">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="volumeIconButton">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="volumeHorizontalLayout" stretch="1,0,0,0">
-          <item>
-           <spacer name="volumeHorizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="volumeLabel">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Volume:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="volumeSlider">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="volumeIconButton">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="musicControlsHorizontalLayout"/>
         </item>
        </layout>
       </item>
@@ -266,7 +292,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -292,7 +318,19 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
    </widget>
+   <widget class="QMenu" name="menuAudio">
+    <property name="title">
+     <string>Audio</string>
+    </property>
+    <widget class="QMenu" name="menuDevices">
+     <property name="title">
+      <string>Devices</string>
+     </property>
+    </widget>
+    <addaction name="menuDevices"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuAudio"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -371,6 +409,11 @@
    </property>
    <property name="text">
     <string>Open &amp;Directory</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>.</string>
    </property>
   </action>
  </widget>

@@ -18,9 +18,11 @@ public:
     void setCurrent(qint64 index);
     /* Useful when in the command line. */
     void setAutoPlay(bool autoPlay);
+    void setAudioDevice(QAudioDevice device);
     const QString &currentMusicFilename() const;
     qint64 currentPosition() const;
     qint64 currentIndex() const;
+    qint64 currentDuration() const;
     bool isPlaying() const;
 
 public slots:
@@ -53,6 +55,7 @@ private:
     QStringList m_playlist;
     qint64 m_currentMusicIndex;
     QString m_currentMusicFilename;
+    qint64 m_currentMusicDuration;
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
     bool m_autoplay;

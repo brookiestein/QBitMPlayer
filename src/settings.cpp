@@ -2,8 +2,10 @@
 #include "ui_settings.h"
 #include "config.hpp"
 
+#include <QAudioDevice>
 #include <QDir>
 #include <QIntValidator>
+#include <QMediaDevices>
 #include <QMessageBox>
 #include <QProcess>
 #include <QStandardPaths>
@@ -100,6 +102,7 @@ Settings::Settings(QWidget *parent)
     m_ui->playlistStateLabel->setText(stateText);
 
     loadPlaylists();
+    setAudioOutputs();
     setInitialValues();
 
     connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &Settings::onCurrentChanged);
@@ -134,6 +137,7 @@ Settings::Settings(QWidget *parent)
 
     connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->heightEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
+    connect(m_ui->audioOutputsCombo, &QComboBox::currentIndexChanged, this, &Settings::checkForChange);
     connect(m_ui->applyWindowSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
     connect(m_ui->applyAudioSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
     connect(m_ui->applyPlaylistSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
@@ -252,6 +256,25 @@ void Settings::loadPlaylists()
     }
 }
 
+void Settings::setAudioOutputs()
+{
+    m_ui->audioOutputsCombo->addItem("");
+    m_settings->beginGroup("AudioSettings");
+    auto defaultAudioOutput = m_settings->value("DefaultAudioOutput", "").toString();
+    m_settings->endGroup();
+
+    int i = 0;
+    int currentIndex = 0;
+    for (const auto &device : QMediaDevices::audioOutputs()) {
+        ++i;
+        m_ui->audioOutputsCombo->addItem(device.description());
+        if (device.id() == defaultAudioOutput)
+            currentIndex = i;
+    }
+
+    m_ui->audioOutputsCombo->setCurrentIndex(currentIndex);
+}
+
 void Settings::setInitialValues()
 {
     m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] = m_ui->rememberWindowSizeCheckBox->isChecked();
@@ -265,6 +288,7 @@ void Settings::setInitialValues()
     m_initialFieldValues[m_ui->volumeLevelEdit] = m_ui->volumeLevelEdit->text();
 
     m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] = m_ui->defaultPlaylistComboBox->currentIndex();
+    m_initialComboBoxValues[m_ui->audioOutputsCombo] = m_ui->audioOutputsCombo->currentIndex();
 }
 
 /* Works, but is it the best way to check for a change? */
@@ -321,6 +345,12 @@ void Settings::checkForChange()
 
     if (m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] != m_ui->defaultPlaylistComboBox->currentIndex()) {
         m_ui->applyPlaylistSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialComboBoxValues[m_ui->audioOutputsCombo] != m_ui->audioOutputsCombo->currentIndex()) {
+        m_ui->applyAudioSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
@@ -490,6 +520,12 @@ void Settings::applyChanges()
     m_settings->setValue("RememberVolumeLevel", rememberVolumeLevel);
     if (volumeLevel >= 0)
         m_settings->setValue("VolumeLevel", volumeLevel);
+
+    QString id {};
+    for (const auto &device : QMediaDevices::audioOutputs())
+        if (device.description() == m_ui->audioOutputsCombo->currentText())
+            id = device.id();
+    m_settings->setValue("DefaultAudioOutput", id);
     m_settings->endGroup();
 
     if (m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] != m_ui->defaultPlaylistComboBox->currentIndex()) {

@@ -19,6 +19,7 @@ class Settings : public QWidget
     Q_OBJECT
 
     void loadPlaylists();
+    void setAudioOutputs();
     void setInitialValues();
 
 public:

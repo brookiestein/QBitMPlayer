@@ -1,12 +1,14 @@
 #include "mainwindow.hpp"
 #include "./ui_mainwindow.h"
 
+#include <QAudioDevice>
 #include <QDir>
 #include <QDirIterator>
 #include <QEventLoop>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QMediaDevices>
 #include <QMediaFormat>
 #include <QMessageBox>
 #include <QStandardPaths>
@@ -64,11 +66,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->playlistWidget->addAction(m_removeSongAction);
 
     m_settings = new QSettings(Settings::createEnvironment(), QSettings::IniFormat, this);
+    setAudioOutputs();
 
     m_playlistSettings = new QSettings(
         Settings::createEnvironment(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
         QSettings::IniFormat,
-        this);
+        this
+    );
 
     m_settings->beginGroup("WindowSettings");
     if (m_settings->value("Centered", false).toBool()) {
@@ -122,9 +126,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->stopButton, &QPushButton::clicked, this, &MainWindow::onStopPlayer);
     connect(m_ui->previousButton, &QPushButton::clicked, this, &MainWindow::onPlayPrevious);
     connect(m_ui->nextButton, &QPushButton::clicked, this, &MainWindow::onPlayNext);
+    connect(m_ui->seekBackwardButton, &QPushButton::clicked, this, &MainWindow::onSeekBackwardButtonClicked);
+    connect(m_ui->seekForwardButton, &QPushButton::clicked, this, &MainWindow::onSeekForwardButtonClicked);
     connect(m_ui->autoRepeatButton, &QPushButton::clicked, this, &MainWindow::onAutoRepeatButtonClicked);
     connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeSliderValueChanged);
     connect(m_ui->volumeIconButton, &QPushButton::clicked, this, &MainWindow::onVolumeIconButtonClicked);
+    connect(&m_mediaDevices, &QMediaDevices::audioOutputsChanged, this, &MainWindow::setAudioOutputs);
 
     /* Keyboard shortcuts */
     connect(m_quitShortcut, &QShortcut::activated, this, &MainWindow::onQuit);
@@ -203,7 +210,7 @@ void MainWindow::showEvent(QShowEvent *event)
         this
     );
 
-    auto *stopAction = new QAction(
+    m_stopSystrayAction = new QAction(
         QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStop),
         tr("Stop"),
         this
@@ -234,7 +241,7 @@ void MainWindow::showEvent(QShowEvent *event)
 
     systrayMenu->addActions({
         m_playPauseSystrayAction,
-        stopAction,
+        m_stopSystrayAction,
         previousAction,
         nextAction
     });
@@ -254,17 +261,8 @@ void MainWindow::showEvent(QShowEvent *event)
         }
     });
 
-    connect(m_playPauseSystrayAction, &QAction::triggered, this, [this] () {
-        playPauseHelper();
-        if (m_player.isPlaying()) {
-            m_playPauseSystrayAction->setText(tr("Pause"));
-            m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));
-        } else {
-            m_playPauseSystrayAction->setText(tr("Play"));
-            m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
-        }
-    });
-    connect(stopAction, &QAction::triggered, this, &MainWindow::onStopPlayer);
+    connect(m_playPauseSystrayAction, &QAction::triggered, this, &MainWindow::playPauseHelper);
+    connect(m_stopSystrayAction, &QAction::triggered, this, &MainWindow::onStopPlayer);
     connect(previousAction, &QAction::triggered, this, &MainWindow::onPlayPrevious);
     connect(nextAction, &QAction::triggered, this, &MainWindow::onPlayNext);
     connect(exitAction, &QAction::triggered, this, &MainWindow::onQuit);
@@ -306,6 +304,57 @@ void MainWindow::onQuit()
     if (reply == QMessageBox::Yes) {
         auto *app = QApplication::instance();
         app->quit();
+    }
+}
+
+void MainWindow::clearAudioOutputs()
+{
+    for (auto *action : m_ui->menuDevices->actions())
+        m_ui->menuDevices->removeAction(action);
+}
+
+void MainWindow::setAudioOutputs()
+{
+    clearAudioOutputs();
+    m_settings->beginGroup("AudioSettings");
+    auto defaultAudioOutput = m_settings->value("DefaultAudioOutput", "").toString();
+    m_settings->endGroup();
+    bool foundDefaultAudioOutput {};
+
+    auto setDefaultAudioOutput = [this] () {
+        const auto defaultAudioOutputDescription = QMediaDevices::defaultAudioOutput().description();
+        for (auto *device : m_ui->menuDevices->actions()) {
+            if (device->text() == defaultAudioOutputDescription) {
+                device->setText(QString("• %1").arg(device->text()));
+                break;
+            }
+        }
+    };
+
+    for (const auto &device : QMediaDevices::audioOutputs()) {
+        auto *deviceAction = new QAction(device.description(), this);
+        m_ui->menuDevices->addAction(deviceAction);
+
+        if (device.id() == defaultAudioOutput) {
+            m_player.setAudioDevice(device);
+            deviceAction->setText(QString("• %1").arg(deviceAction->text()));
+            foundDefaultAudioOutput = true;
+        }
+
+        connect(deviceAction, &QAction::triggered, this, &MainWindow::onChangeAudioDevice);
+    }
+
+    if (not defaultAudioOutput.isEmpty() and not foundDefaultAudioOutput) {
+        setDefaultAudioOutput();
+
+        QMessageBox::warning(
+            this,
+            tr("Default Audio Output Not Found"),
+            tr("Default audio output set by user is: %1, "
+               "but it wasn't found on this system.").arg(defaultAudioOutput)
+        );
+    } else if (defaultAudioOutput.isEmpty()) {
+        setDefaultAudioOutput();
     }
 }
 
@@ -368,15 +417,15 @@ void MainWindow::durationChanged(qint64 duration)
                  m_minutes < 10 ? "0" : "",
                  QString::number(m_minutes),
                  m_seconds < 10 ? "0" : "",
-                 QString::number(m_seconds))
-        );
+                 QString::number(m_seconds)
+        )
+    );
 }
 
 void MainWindow::positionChanged(qint64 position)
 {
-    if (m_canModifySlider) {
+    if (m_canModifySlider)
         m_ui->seekMusicSlider->setValue(position);
-    }
 
     qint8 hours = 0;
     qint8 minutes = 0;
@@ -439,6 +488,32 @@ void MainWindow::finished()
             }
         }
         break;
+    }
+}
+
+void MainWindow::onChangeAudioDevice(bool checked)
+{
+    auto *snder = qobject_cast<QAction *>(sender());
+    Q_ASSERT_X(snder != nullptr, "Must be called as a slot of a QAction.", Q_FUNC_INFO);
+
+    auto text = snder->text();
+    if (text.contains("•"))
+        return;
+
+    for (auto &device : QMediaDevices::audioOutputs()) {
+        if (device.description() != text)
+            continue;
+
+        m_player.setAudioDevice(device);
+
+        // First remove the bullet of the old device.
+        for (auto *dev : m_ui->menuDevices->actions())
+            if (dev->text().contains("• "))
+                dev->setText(dev->text().replace("• ", ""));
+
+        for (auto *dev : m_ui->menuDevices->actions())
+            if (dev->text() == text)
+                dev->setText(QString("• %1").arg(text));
     }
 }
 
@@ -919,6 +994,8 @@ void MainWindow::onStopPlayer()
     if (m_ui->playButton->text() != tr("&Play")) {
         m_ui->playButton->setText(tr("Play"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
+        m_playPauseSystrayAction->setText(tr("Play"));
+        m_playPauseSystrayAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
     }
 }
 
@@ -973,6 +1050,22 @@ void MainWindow::onSeekSliderReleased()
     qint64 milliseconds = m_ui->seekMusicSlider->value() * 1'000;
     m_player.seek(milliseconds);
     m_canModifySlider = true;
+}
+
+void MainWindow::onSeekBackwardButtonClicked()
+{
+    m_player.pause();
+    auto newPosition = m_player.currentPosition() - 2'000;
+    m_player.seek(newPosition);
+    m_player.play();
+}
+
+void MainWindow::onSeekForwardButtonClicked()
+{
+    m_player.pause();
+    auto newPosition = m_player.currentPosition() + 2'000;
+    m_player.seek(newPosition);
+    m_player.play();
 }
 
 void MainWindow::onVolumeSliderValueChanged(int value)
