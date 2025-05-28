@@ -81,7 +81,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    if (m_settings->value("HideControls", false).toBool()) {
+    m_controlsHidden = m_settings->value("HideControls", false).toBool();
+    if (m_controlsHidden) {
         onHideShowControls(true);
     }
 
@@ -441,25 +442,26 @@ void MainWindow::warning(const QString &message)
 
 void MainWindow::onHideShowControls(bool triggered)
 {
+    if (sender()) // Toggle only if user clicked the menu action.
+        m_controlsHidden = !m_controlsHidden;
+
     if (m_controlsHidden) {
-        m_ui->actionHideShowControls->setText(tr("Hide"));
-        m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoPrevious));
-    } else {
         m_ui->actionHideShowControls->setText(tr("Show"));
         m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoNext));
+    } else {
+        m_ui->actionHideShowControls->setText(tr("Hide"));
+        m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoPrevious));
     }
 
-    m_ui->playlistLabel->setVisible(m_controlsHidden);
-    m_ui->playingLabel->setVisible(m_controlsHidden);
-    m_ui->playingEdit->setVisible(m_controlsHidden);
-    m_ui->openFilesButton->setVisible(m_controlsHidden);
-    m_ui->playlistWidget->setVisible(m_controlsHidden);
-    m_ui->openPlaylistButton->setVisible(m_controlsHidden);
-    m_ui->closePlayListButton->setVisible(m_controlsHidden);
-    m_ui->savePlaylistButton->setVisible(m_controlsHidden);
-    m_ui->removePlaylistButton->setVisible(m_controlsHidden);
-
-    m_controlsHidden = !m_controlsHidden;
+    m_ui->playlistLabel->setVisible(!m_controlsHidden);
+    m_ui->playingLabel->setVisible(!m_controlsHidden);
+    m_ui->playingEdit->setVisible(!m_controlsHidden);
+    m_ui->openFilesButton->setVisible(!m_controlsHidden);
+    m_ui->playlistWidget->setVisible(!m_controlsHidden);
+    m_ui->openPlaylistButton->setVisible(!m_controlsHidden);
+    m_ui->closePlayListButton->setVisible(!m_controlsHidden);
+    m_ui->savePlaylistButton->setVisible(!m_controlsHidden);
+    m_ui->removePlaylistButton->setVisible(!m_controlsHidden);
 }
 
 void MainWindow::onOpenSongActionTriggered(bool triggered)
