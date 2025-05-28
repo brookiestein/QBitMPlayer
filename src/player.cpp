@@ -20,6 +20,17 @@ Player::Player(const QStringList &playlist, QObject *parent)
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, &Player::onDurationChanged);
     connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::mediaStatusChanged);
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, &Player::positionChangedSlot);
+    connect(m_mediaPlayer, &QMediaPlayer::hasVideoChanged, this, [this] (bool videoAvailable) {
+        if (videoAvailable)
+            emit mediaType(MEDIA_TYPE::VIDEO);
+        else
+            emit mediaType(MEDIA_TYPE::AUDIO);
+    });
+}
+
+void Player::setPlaylistName(const QString &playlistName)
+{
+    m_playlistName = playlistName;
 }
 
 bool Player::hasNext()
@@ -66,7 +77,17 @@ void Player::setAudioDevice(QAudioDevice device)
     m_mediaPlayer->audioOutput()->setDevice(device);
 }
 
-const QString &Player::currentMusicFilename() const
+void Player::setVideoOutput(QVideoWidget *videoOutput)
+{
+    m_mediaPlayer->setVideoOutput(videoOutput);
+}
+
+QString Player::playlistName() const
+{
+    return m_playlistName;
+}
+
+QString Player::currentMusicFilename() const
 {
     return m_currentMusicFilename;
 }
@@ -180,6 +201,7 @@ void Player::seek(qint64 position)
 void Player::clearSource()
 {
     m_mediaPlayer->setSource(QUrl());
+    m_playlistName.clear();
 }
 
 void Player::errorOcurred(QMediaPlayer::Error err, const QString &errorString)

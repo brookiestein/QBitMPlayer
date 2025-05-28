@@ -36,7 +36,8 @@ Settings::Settings(QWidget *parent)
     m_ui->applyPlaylistSettingsButton->setEnabled(false);
 
     m_ui->centeredCheckBox->setToolTip(
-        tr("If checked, floating window will always be opened at the center of the screen.")
+        tr("If checked, floating window will always be opened "
+           "at the center of the screen.")
     );
 
     m_ui->alwaysMaximizedCheckBox->setToolTip(
@@ -46,6 +47,11 @@ Settings::Settings(QWidget *parent)
     m_ui->minimizeToSystrayCheckBox->setToolTip(
         tr("If checked, the player will be minimized to the system tray "
            "when asking to close, for example, by pressing the close button.")
+    );
+
+    m_ui->hideControlsCheckBox->setToolTip(
+        tr("Hide playlist and buttons controlling it by default "
+           "which can be shown again in the menu.")
     );
 
     m_playlistSettings = new QSettings(
@@ -77,6 +83,9 @@ Settings::Settings(QWidget *parent)
 
     int width = m_settings->value("Width", geometry().width()).toInt();
     int height = m_settings->value("Height", geometry().height()).toInt();
+
+    m_ui->hideControlsCheckBox->setChecked(m_settings->value("HideControls", false).toBool());
+
     m_settings->endGroup();
 
     m_ui->widthEdit->setText(QString::number(width));
@@ -133,6 +142,13 @@ Settings::Settings(QWidget *parent)
         &QCheckBox::checkStateChanged,
         this,
         &Settings::onMinimizeToSystrayChecked
+    );
+
+    connect(
+        m_ui->hideControlsCheckBox,
+        &QCheckBox::checkStateChanged,
+        this,
+        &Settings::checkForChange
     );
 
     connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
@@ -281,6 +297,7 @@ void Settings::setInitialValues()
     m_initialCheckBoxesValues[m_ui->centeredCheckBox] = m_ui->centeredCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] = m_ui->alwaysMaximizedCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] = m_ui->minimizeToSystrayCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->hideControlsCheckBox] = m_ui->hideControlsCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
 
     m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
@@ -314,6 +331,12 @@ void Settings::checkForChange()
     }
 
     if (m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] != m_ui->minimizeToSystrayCheckBox->isChecked()) {
+        m_ui->applyWindowSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialCheckBoxesValues[m_ui->hideControlsCheckBox] != m_ui->hideControlsCheckBox->isChecked()) {
         m_ui->applyWindowSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
@@ -451,6 +474,7 @@ void Settings::applyChanges()
     bool centered = m_ui->centeredCheckBox->isChecked();
     bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
     bool minimizeToSystray = m_ui->minimizeToSystrayCheckBox->isChecked();
+    bool hideControls = m_ui->hideControlsCheckBox->isChecked();
     bool rememberVolumeLevel = m_ui->rememberVolumeLevelCheckBox->isChecked();
     int width {-1};
     int height {-1};
@@ -510,6 +534,8 @@ void Settings::applyChanges()
     m_settings->setValue("Centered", centered);
     m_settings->setValue("AlwaysMaximized", alwaysMaximized);
     m_settings->setValue("MinimizeToSystray", minimizeToSystray);
+    m_settings->setValue("HideControls", hideControls);
+
     if (width >= 0)
         m_settings->setValue("Width", width);
     if (height >= 0)

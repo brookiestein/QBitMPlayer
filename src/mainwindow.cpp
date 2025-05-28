@@ -80,6 +80,11 @@ MainWindow::MainWindow(QWidget *parent)
             move(screen()->geometry().center() - frameGeometry().center());
         }
     }
+
+    if (m_settings->value("HideControls", false).toBool()) {
+        onHideShowControls(true);
+    }
+
     m_settings->endGroup();
 
     m_settings->beginGroup("AudioSettings");
@@ -97,11 +102,57 @@ MainWindow::MainWindow(QWidget *parent)
     }
     m_settings->endGroup();
 
+    m_settings->beginGroup("Recents");
+    m_settings->beginGroup("Playlists");
+
+    for (const auto &playlist : m_settings->childKeys()) {
+        auto *action = new QAction(playlist, this);
+        m_ui->menuPlaylists->addAction(action);
+
+        connect(action, &QAction::triggered, this, [this] ([[maybe_unused]] bool triggered) {
+            auto *action = qobject_cast<QAction *>(sender());
+            loadPlaylist(action->text());
+        });
+    }
+
+    m_settings->endGroup(); // Playlists;
+    m_settings->beginGroup("Songs");
+
+    for (const auto &song : m_settings->childKeys()) {
+        auto *action = new QAction(song, this);
+        m_ui->menuSongs->addAction(action);
+
+        connect(action, &QAction::triggered, this, &MainWindow::onOpenSongActionTriggered);
+    }
+
+    m_settings->endGroup(); // Songs
+    m_settings->endGroup(); // Recents
+
+    m_videoPlayer.setAspectRatioMode(Qt::KeepAspectRatioByExpanding);
+    m_ui->videoPlayerHorizontalLayout->addWidget(&m_videoPlayer, 1);
+    m_player.setVideoOutput(&m_videoPlayer);
+
+    connect(&m_videoPlayer, &VideoPlayer::pause, this, &MainWindow::playPauseHelper);
+
     connect(&m_player, &Player::error, this, &MainWindow::error);
     connect(&m_player, &Player::warning, this, &MainWindow::warning);
     connect(&m_player, &Player::durationChanged, this, &MainWindow::durationChanged);
     connect(&m_player, &Player::positionChanged, this, &MainWindow::positionChanged);
     connect(&m_player, &Player::finished, this, &MainWindow::finished);
+    connect(&m_player, &Player::mediaType, this, [this] (Player::MEDIA_TYPE type) {
+        switch (type)
+        {
+        case Player::MEDIA_TYPE::AUDIO:
+            m_ui->videoPlayerPlaceholderWidget->setVisible(true);
+            m_videoPlayer.setVisible(false);
+            break;
+        case Player::MEDIA_TYPE::VIDEO:
+            m_ui->videoPlayerPlaceholderWidget->setVisible(false);
+            m_videoPlayer.setVisible(true);
+            break;
+        }
+    });
+
     connect(m_addSongToPlaylist, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onRemoveSongActionTriggered);
     connect(m_ui->actionOpenFiles, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
@@ -109,6 +160,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionQuit, &QAction::triggered, this, &MainWindow::onQuit);
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
+    connect(m_ui->actionHideShowControls, &QAction::triggered, this, &MainWindow::onHideShowControls);
     connect(m_ui->playlistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
     connect(m_ui->openFilesButton, &QPushButton::clicked, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionOpenPlaylist, &QAction::triggered, this, &MainWindow::onOpenPlayListActionRequested);
@@ -195,7 +247,7 @@ void MainWindow::showEvent(QShowEvent *event)
 {
     static bool firstTime {true};
     if (not firstTime) {
-        QWidget::showEvent(event);
+        QMainWindow::showEvent(event);
         return;
     }
 
@@ -385,6 +437,89 @@ void MainWindow::error(const QString &message)
 void MainWindow::warning(const QString &message)
 {
     QMessageBox::warning(this, tr("Warning"), message);
+}
+
+void MainWindow::onHideShowControls(bool triggered)
+{
+    if (m_controlsHidden) {
+        m_ui->actionHideShowControls->setText(tr("Hide"));
+        m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoPrevious));
+    } else {
+        m_ui->actionHideShowControls->setText(tr("Show"));
+        m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoNext));
+    }
+
+    m_ui->playlistLabel->setVisible(m_controlsHidden);
+    m_ui->playingLabel->setVisible(m_controlsHidden);
+    m_ui->playingEdit->setVisible(m_controlsHidden);
+    m_ui->openFilesButton->setVisible(m_controlsHidden);
+    m_ui->playlistWidget->setVisible(m_controlsHidden);
+    m_ui->openPlaylistButton->setVisible(m_controlsHidden);
+    m_ui->closePlayListButton->setVisible(m_controlsHidden);
+    m_ui->savePlaylistButton->setVisible(m_controlsHidden);
+    m_ui->removePlaylistButton->setVisible(m_controlsHidden);
+
+    m_controlsHidden = !m_controlsHidden;
+}
+
+void MainWindow::onOpenSongActionTriggered(bool triggered)
+{
+    auto *action = qobject_cast<QAction *>(sender());
+    m_settings->beginGroup("Recents/Songs");
+    auto filenames = m_settings->allKeys();
+    auto index = filenames.indexOf(action->text());
+
+    if (index < 0) {
+        QMessageBox::warning(
+            this,
+            tr("Song not found"),
+            tr("The song: %1 could not be found.").arg(action->text())
+        );
+        return;
+    }
+
+    auto filename = m_settings->value(filenames[index]).toString();
+    if (m_playlist.contains(filename)) {
+        m_settings->endGroup();
+        return;
+    }
+    m_settings->endGroup();
+
+    qint64 currentIndex {};
+    if (not m_currentPlaylistName.isEmpty()) {
+        QMessageBox question;
+        auto *closePlaylist = question.addButton(tr("Close Playlist"), QMessageBox::RejectRole);
+        auto *appendToPlaylist = question.addButton(tr("Append to Playlist"), QMessageBox::AcceptRole);
+        question.setText(tr("There's a playlist already opened. Close it or append song?"));
+
+        connect(closePlaylist, &QPushButton::clicked, this, [this, &filename] () {
+            onClosePlayListActionRequested();
+            m_playlist << filename;
+        });
+
+        connect(appendToPlaylist, &QPushButton::clicked, this, [this, &filename, &currentIndex] () {
+            m_playlist << filename;
+            currentIndex = m_player.currentIndex();
+        });
+
+        auto reply = question.exec();
+        if (reply == QDialog::Rejected)
+            return;
+    } else {
+        m_playlist << filename;
+    }
+
+    onStopPlayer();
+    m_playlistInitState = m_playlist;
+    m_player.setPlayList(m_playlist);
+    m_player.setCurrent(currentIndex);
+    m_ui->playlistWidget->clear();
+
+    for (const auto &filename : m_playlist)
+        m_ui->playlistWidget->addItem(musicName(filename));
+
+    m_ui->playlistWidget->setCurrentRow(currentIndex);
+    m_ui->playingEdit->setText(musicName(m_playlist[currentIndex]));
 }
 
 void MainWindow::durationChanged(qint64 duration)
@@ -694,10 +829,20 @@ void MainWindow::onOpenFilesActionRequested()
 
     m_player.setPlayList(m_playlist);
 
+    m_settings->beginGroup("Recents/Songs");
     for (const auto &filename : playlist) {
         auto name = musicName(filename);
         m_ui->playlistWidget->addItem(name);
+
+        if (wasPlaylistEmpty and not m_settings->childKeys().contains(filename))
+            m_settings->setValue(name, filename);
+
+        auto *action = new QAction(name, this);
+        m_ui->menuSongs->addAction(action);
+
+        connect(action, &QAction::triggered, this, &MainWindow::onOpenSongActionTriggered);
     }
+    m_settings->endGroup();
 
     if (wasPlaylistEmpty) {
         m_player.setCurrent(0);
@@ -720,10 +865,26 @@ void MainWindow::onOpenPlayListActionRequested()
     }
 
     loadPlaylist(playlist);
+
+    m_settings->beginGroup("Recents/Playlists");
+    if (not m_settings->childKeys().contains(playlist)) {
+        m_settings->setValue(playlist, "");
+        auto *action = new QAction(playlist, this);
+        m_ui->menuPlaylists->addAction(action);
+
+        connect(action, &QAction::triggered, this, [this] ([[maybe_unused]] bool triggered) {
+            auto *action = qobject_cast<QAction *>(sender());
+            loadPlaylist(action->text());
+        });
+    }
+    m_settings->endGroup();
 }
 
 void MainWindow::loadPlaylist(const QString &playlistName)
 {
+    if (m_player.playlistName() == playlistName)
+        return;
+
     /* First close the current playlist if there's one. */
     onClosePlayListActionRequested();
 
@@ -746,6 +907,7 @@ void MainWindow::loadPlaylist(const QString &playlistName)
     }
 
     m_playlistInitState = m_playlist;
+    m_player.setPlaylistName(playlistName);
     m_player.setPlayList(m_playlist);
     m_player.setCurrent(0);
 
@@ -886,6 +1048,23 @@ void MainWindow::onSavePlayListActionRequested()
 
     m_ui->playlistLabel->setText(tr("Playlist: %1").arg(name));
     m_currentPlaylistName = name;
+
+    if (not updated) {
+        m_settings->beginGroup("Recents/Songs");
+
+        for (const auto filename : songs) {
+            auto name = musicName(filename);
+            if (m_settings->contains(name)) {
+                m_settings->remove(name);
+
+                auto *action = m_ui->menuSongs->findChild<QAction *>(filename);
+                if (action)
+                    m_ui->menuSongs->removeAction(action);
+            }
+        }
+
+        m_settings->endGroup();
+    }
 
     auto message = updated
                        ? tr("Playlist %1 has been updated!").arg(name)

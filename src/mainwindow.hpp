@@ -7,17 +7,20 @@
 #include <QListWidgetItem>
 #include <QMainWindow>
 #include <QMediaDevices>
+#include <QMouseEvent>
 #include <QSettings>
 #include <QShortcut>
 #include <QShowEvent>
 #include <QStandardPaths>
 #include <QSystemTrayIcon>
+#include <QVideoWidget>
 #ifdef USE_IPC
     #include <QDBusConnection>
 #endif
 
 #include "config.hpp"
 #include "player.hpp"
+#include "videoplayer.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -52,6 +55,7 @@ protected:
 private:
     Ui::MainWindow *m_ui;
     QMediaDevices m_mediaDevices;
+    VideoPlayer m_videoPlayer;
     QSystemTrayIcon m_systray;
     QAction *m_showHideSystrayAction;
     QAction *m_playPauseSystrayAction;
@@ -98,10 +102,14 @@ private:
     QShortcut *m_decreaseVolumeBy5Shortcut; /* Down arrow */
     QShortcut *m_decreaseVolumeBy10Shortcut; /* Shift + Down arrow */
 
+    bool m_controlsHidden;
+
 private slots:
     void onQuit();
     void error(const QString &message);
     void warning(const QString &message);
+    void onHideShowControls([[maybe_unused]] bool triggered);
+    void onOpenSongActionTriggered([[maybe_unused]] bool triggered);
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
