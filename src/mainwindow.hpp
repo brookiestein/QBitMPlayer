@@ -13,14 +13,18 @@
 #include <QShowEvent>
 #include <QStandardPaths>
 #include <QSystemTrayIcon>
-#include <QVideoWidget>
-#ifdef USE_IPC
+#ifdef ENABLE_VIDEO_PLAYER
+    #include <QVideoWidget>
+#endif // ENABLE_VIDEO_PLAYER
+#ifdef ENABLE_IPC
     #include <QDBusConnection>
-#endif
+#endif // ENABLE_IPC
 
 #include "config.hpp"
 #include "player.hpp"
-#include "videoplayer.hpp"
+#ifdef ENABLE_VIDEO_PLAYER
+    #include "videoplayer.hpp"
+#endif
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,7 +35,7 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
     Q_CLASSINFO("D-Bus Interface", SERVICE_NAME)
 
     QDBusConnection m_dbusConnection;
@@ -55,7 +59,9 @@ protected:
 private:
     Ui::MainWindow *m_ui;
     QMediaDevices m_mediaDevices;
+#ifdef ENABLE_VIDEO_PLAYER
     VideoPlayer m_videoPlayer;
+#endif
     QSystemTrayIcon m_systray;
     QAction *m_showHideSystrayAction;
     QAction *m_playPauseSystrayAction;
@@ -139,15 +145,15 @@ private slots:
     void onVolumeIncrease();
     void onVolumeDecrease();
     void about();
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
 public slots:
     Q_SCRIPTABLE void togglePlay();
     Q_SCRIPTABLE void playPrevious();
     Q_SCRIPTABLE void playNext();
     Q_SCRIPTABLE void stop();
-#endif // USE_IPC
-#ifdef USE_NOTIFICATIONS
+#endif // ENABLE_IPC
+#ifdef ENABLE_NOTIFICATIONS
     void sendNotification(const QString &name);
-#endif // USE_NOTIFICATIONS
+#endif // ENABLE_NOTIFICATIONS
 };
 #endif // MAINWINDOW_HPP

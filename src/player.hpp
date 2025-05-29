@@ -4,7 +4,9 @@
 #include <QAudioOutput>
 #include <QMediaPlayer>
 #include <QObject>
-#include <QVideoWidget>
+#ifdef ENABLE_VIDEO_PLAYER
+    #include <QVideoWidget>
+#endif
 
 class Player : public QObject
 {
@@ -21,7 +23,9 @@ public:
     /* Useful when in the command line. */
     void setAutoPlay(bool autoPlay);
     void setAudioDevice(QAudioDevice device);
+#ifdef ENABLE_VIDEO_PLAYER
     void setVideoOutput(QVideoWidget *videoOutput);
+#endif
     QString playlistName() const;
     QString currentMusicFilename() const;
     qint64 currentPosition() const;
@@ -53,7 +57,7 @@ signals:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     void nowPlaying(const QString &filename);
 #endif // USE_NOTIFICATIONS
 
@@ -66,7 +70,7 @@ private:
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
     bool m_autoplay;
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     bool m_currentChanged;
 #endif // USE_NOTIFICATIONS
 };

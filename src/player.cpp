@@ -11,7 +11,7 @@ Player::Player(const QStringList &playlist, QObject *parent)
     , m_playlist(playlist)
     , m_currentMusicIndex(-1)
     , m_autoplay(false)
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     , m_currentChanged {false}
 #endif
 {
@@ -46,7 +46,7 @@ void Player::setCurrent(const QString &musicFile)
         m_currentMusicIndex = m_playlist.indexOf(musicFile);
     }
 
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     m_currentChanged = true;
 #endif
 }
@@ -62,7 +62,7 @@ void Player::setCurrent(qint64 index)
     m_mediaPlayer->setSource(QUrl::fromLocalFile(m_playlist[index]));
     m_currentMusicFilename = m_playlist[index];
 
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     m_currentChanged = true;
 #endif
 }
@@ -77,10 +77,12 @@ void Player::setAudioDevice(QAudioDevice device)
     m_mediaPlayer->audioOutput()->setDevice(device);
 }
 
+#ifdef ENABLE_VIDEO_PLAYER
 void Player::setVideoOutput(QVideoWidget *videoOutput)
 {
     m_mediaPlayer->setVideoOutput(videoOutput);
 }
+#endif
 
 QString Player::playlistName() const
 {
@@ -148,7 +150,7 @@ bool Player::play()
     m_mediaPlayer->play();
     m_currentMusicDuration = m_mediaPlayer->duration();
 
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     if (m_currentChanged) {
         m_currentChanged = false;
         emit nowPlaying(m_currentMusicFilename);

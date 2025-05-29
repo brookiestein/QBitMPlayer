@@ -11,8 +11,8 @@ extern "C" {
     #define signals Q_SIGNALS
 }
 #elif defined(WIN32) || defined(_WIN32)
-#include "wintoastlib.h"
-#include <string>
+    #include "wintoastlib.h"
+    #include <string>
 #endif
 
 class NotificationException : public std::exception

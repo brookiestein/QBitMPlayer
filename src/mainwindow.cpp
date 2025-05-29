@@ -17,7 +17,7 @@
 #include "config.hpp"
 #include "playlistchooser.hpp"
 #include "settings.hpp"
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     #include "notifier.hpp"
 #endif
 
@@ -45,9 +45,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_decreaseVolumeBy5Shortcut {new QShortcut(QKeySequence(Qt::Key_Down), this)}
     , m_decreaseVolumeBy10Shortcut {new QShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_Down), this)}
     , m_currentPosition(0)
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
     , m_dbusConnection {QDBusConnection::sessionBus()}
-#endif // USE_IPC
+#endif // ENABLE_IPC
 {
     m_ui->setupUi(this);
 
@@ -129,17 +129,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_settings->endGroup(); // Songs
     m_settings->endGroup(); // Recents
 
+#ifdef ENABLE_VIDEO_PLAYER
     m_videoPlayer.setAspectRatioMode(Qt::KeepAspectRatioByExpanding);
     m_ui->videoPlayerHorizontalLayout->addWidget(&m_videoPlayer, 1);
     m_player.setVideoOutput(&m_videoPlayer);
 
     connect(&m_videoPlayer, &VideoPlayer::pause, this, &MainWindow::playPauseHelper);
 
-    connect(&m_player, &Player::error, this, &MainWindow::error);
-    connect(&m_player, &Player::warning, this, &MainWindow::warning);
-    connect(&m_player, &Player::durationChanged, this, &MainWindow::durationChanged);
-    connect(&m_player, &Player::positionChanged, this, &MainWindow::positionChanged);
-    connect(&m_player, &Player::finished, this, &MainWindow::finished);
     connect(&m_player, &Player::mediaType, this, [this] (Player::MEDIA_TYPE type) {
         switch (type)
         {
@@ -153,6 +149,13 @@ MainWindow::MainWindow(QWidget *parent)
             break;
         }
     });
+#endif
+
+    connect(&m_player, &Player::error, this, &MainWindow::error);
+    connect(&m_player, &Player::warning, this, &MainWindow::warning);
+    connect(&m_player, &Player::durationChanged, this, &MainWindow::durationChanged);
+    connect(&m_player, &Player::positionChanged, this, &MainWindow::positionChanged);
+    connect(&m_player, &Player::finished, this, &MainWindow::finished);
 
     connect(m_addSongToPlaylist, &QAction::triggered, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_removeSongAction, &QAction::triggered, this, &MainWindow::onRemoveSongActionTriggered);
@@ -206,7 +209,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_decreaseVolumeBy5Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
     connect(m_decreaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
 
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
     connect(&m_player, &Player::nowPlaying, this, [this] (const QString &filename) {
         sendNotification(musicName(filename));
     });
@@ -936,7 +939,7 @@ void MainWindow::setVolumeIcon()
     }
 }
 
-#ifdef USE_NOTIFICATIONS
+#ifdef ENABLE_NOTIFICATIONS
 void MainWindow::sendNotification(const QString &name)
 {
     Notifier *notifier {nullptr};
@@ -971,7 +974,7 @@ void MainWindow::sendNotification(const QString &name)
     notifier->sendNotification();
     delete notifier;
 }
-#endif // USE_NOTIFICATIONS
+#endif // ENABLE_NOTIFICATIONS
 
 void MainWindow::onClosePlayListActionRequested()
 {
@@ -1328,7 +1331,7 @@ Build Date: %6</p>").arg(PROJECT_NAME, PROJECT_VERSION, PROJECT_LICENSE, AUTHORS
     messageBox.exec();
 }
 
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
 void MainWindow::togglePlay()
 {
     playPauseHelper();
@@ -1348,4 +1351,4 @@ void MainWindow::stop()
 {
     onStopPlayer();
 }
-#endif // USE_IPC
+#endif // ENABLE_IPC
