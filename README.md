@@ -11,7 +11,8 @@ QBitMPlayer is currently available to be installed in its binary form just for [
 2. QtMultimedia
 3. QtDBus (if you want support for Inter-Proccess Comunication)
 4. CMake (for building)
-5. libnotify (If you want desktop notifications)
+5. libnotify (If you want desktop notifications on Linux)
+6. WinToast (If you want desktop notifications on Windows)
 
 Make sure you have all those packages installed on your OS. Installation will depend on what Operating System you're running, 
 but here's a table showing how to install them in the most popular Linux distributions:
@@ -37,10 +38,10 @@ $ git clone https://github.com/brookiestein/QBitMPlayer
 2. Build
 ```
 $ cd QBitMPlayer
-$ cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr -DUSE_IPC=1 -DUSE_NOTIFICATIONS=1
+$ cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr -DENABLE_IPC=1 -DENABLE_NOTIFICATIONS=1 -DENABLE_VIDEO_PLAYER
 $ cmake --build build --parallel
 ```
-In the second command we're using two optional features QBitMPlayer offers: Inter-Process Communication and Desktop Notifications.
+In the second command we're using three optional features QBitMPlayer offers: Inter-Process Communication, Desktop Notifications and the Video Player.
 
 The first one corresponds to the ability it has to respond to messages sent from other processes. 
 Let's say you're listening to your favourite playlist, and you have the player minimized, maybe 
@@ -68,7 +69,9 @@ Available commands are:
 
 All those commands must be qualified like: `com.github.brookiestein.QBitMPlayer.command`, where 'command' is any of the already listed ones.
 
-And the last optional feature is Desktop Notifications: Whenever the current playing song changes, QBitMPlayer will send a desktop notification saying something like: Now Playing: Linkin Park...
+The second optional feature is Desktop Notifications: Whenever the currently playing song changes, QBitMPlayer will send a desktop notification saying something like: Now Playing: Linkin Park...
+
+And the last optional feature is the Video Player. This consists on a Video Player which resides in the empty area you see at the center of QBitMPlayer which gets activated only when you ask it to play a video. If you, for example, ask it to play a music file, it keeps hidden until you want to play a video.
 
 Those are disabled by default, and you can enable them like we already did: **setting the macro in the cmake preparation process.**
 
