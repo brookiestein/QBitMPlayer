@@ -146,6 +146,7 @@ private slots:
     void onVolumeIncrease();
     void onVolumeDecrease();
     void about();
+    void sendNotification(const QString &name);
 #ifdef ENABLE_IPC
 public slots:
     Q_SCRIPTABLE void togglePlay();
@@ -153,8 +154,5 @@ public slots:
     Q_SCRIPTABLE void playNext();
     Q_SCRIPTABLE void stop();
 #endif // ENABLE_IPC
-#ifdef ENABLE_NOTIFICATIONS
-    void sendNotification(const QString &name);
-#endif // ENABLE_NOTIFICATIONS
 };
 #endif // MAINWINDOW_HPP

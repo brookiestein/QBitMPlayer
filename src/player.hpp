@@ -57,9 +57,7 @@ signals:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void finished();
-#ifdef ENABLE_NOTIFICATIONS
     void nowPlaying(const QString &filename);
-#endif // ENABLE_NOTIFICATIONS
 
 private:
     QString m_playlistName;
@@ -70,9 +68,7 @@ private:
     QAudioOutput *m_audioOutput;
     QMediaPlayer *m_mediaPlayer;
     bool m_autoplay;
-#ifdef ENABLE_NOTIFICATIONS
     bool m_currentChanged;
-#endif // ENABLE_NOTIFICATIONS
 };
 
 #endif // PLAYER_HPP

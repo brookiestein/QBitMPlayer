@@ -224,11 +224,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_decreaseVolumeBy5Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
     connect(m_decreaseVolumeBy10Shortcut, &QShortcut::activated, this, &MainWindow::onVolumeDecrease);
 
-#ifdef ENABLE_NOTIFICATIONS
     connect(&m_player, &Player::nowPlaying, this, [this] (const QString &filename) {
         sendNotification(musicName(filename));
     });
-#endif
 }
 
 MainWindow::~MainWindow()
@@ -986,9 +984,11 @@ void MainWindow::setVolumeIcon()
     }
 }
 
-#ifdef ENABLE_NOTIFICATIONS
 void MainWindow::sendNotification(const QString &name)
 {
+    m_systray.setToolTip(tr("%1 - Now playing: %2").arg(PROJECT_NAME, name));
+
+#ifdef ENABLE_NOTIFICATIONS
     Notifier *notifier {nullptr};
 #ifdef Q_OS_LINUX
     const auto body = tr("Now playing:\n%1").arg(name).toStdString();
@@ -1020,8 +1020,8 @@ void MainWindow::sendNotification(const QString &name)
 
     notifier->sendNotification();
     delete notifier;
-}
 #endif // ENABLE_NOTIFICATIONS
+}
 
 void MainWindow::onClosePlayListActionRequested()
 {
@@ -1222,6 +1222,8 @@ void MainWindow::onPlayButtonClicked()
 void MainWindow::onStopPlayer()
 {
     m_player.stop();
+    m_systray.setToolTip(PROJECT_NAME);
+
     if (m_ui->playButton->text() != tr("&Play")) {
         m_ui->playButton->setText(tr("Play"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
