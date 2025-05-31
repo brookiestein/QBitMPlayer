@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QApplication::setApplicationName(PROJECT_NAME);
     QApplication::setApplicationVersion(PROJECT_VERSION);
+    QApplication::setWindowIcon(QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer));
 
     QCommandLineParser parser;
     parser.setApplicationDescription(PROJECT_DESCRIPTION);

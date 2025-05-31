@@ -24,7 +24,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui {new Ui::MainWindow}
-    , m_systray(QIcon::fromTheme(QIcon::ThemeIcon::DocumentPrint), this)
+    , m_systray(QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer), this)
     , m_canModifySlider {true}
     , m_quitShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_Q), this)}
     , m_openFilesShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_O), this)}
