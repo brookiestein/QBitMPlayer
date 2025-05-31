@@ -1,9 +1,9 @@
 [Desktop Entry]
 Name=QBitMPlayer
-Exec=/tmp/bin/qbitmplayer
+Exec=/usr/local/bin/qbitmplayer
 Type=Application
 Comment=Music Player written in C++ & Qt.
-Icon=/tmp/share/QBitMPlayer/resources/assets/icon.png
+Icon=/usr/local/share/QBitMPlayer/resources/assets/icon.png
 Categories=AudioVideo;Audio;
 Terminal=false
 StartupNotify=true

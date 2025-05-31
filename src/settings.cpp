@@ -18,7 +18,7 @@ Settings::Settings(QWidget *parent)
     , m_quitShortcut {new QShortcut(QKeySequence(Qt::Key_Escape), this)}
 {
     m_ui->setupUi(this);
-    m_ui->tabWidget->setTabText(0, tr("Window"));
+    m_ui->tabWidget->setTabText(0, tr("Interface"));
     m_ui->tabWidget->setTabText(1, tr("Audio"));
     m_ui->tabWidget->setTabText(2, tr("Playlist"));
     m_ui->tabWidget->setCurrentIndex(0);
@@ -31,7 +31,7 @@ Settings::Settings(QWidget *parent)
     m_ui->widthEdit->setValidator(widthValidator);
     m_ui->heightEdit->setValidator(heightValidator);
     m_ui->volumeLevelEdit->setValidator(volumeValidator);
-    m_ui->applyWindowSettingsButton->setEnabled(false);
+    m_ui->applyInterfaceSettingsButton->setEnabled(false);
     m_ui->applyAudioSettingsButton->setEnabled(false);
     m_ui->applyPlaylistSettingsButton->setEnabled(false);
 
@@ -86,7 +86,22 @@ Settings::Settings(QWidget *parent)
 
     m_ui->hideControlsCheckBox->setChecked(m_settings->value("HideControls", false).toBool());
 
+    m_ui->defaultLanguageComboBox->addItems({
+        "",
+        tr("English"),
+        tr("Español"),
+    });
+
+    auto defaultLanguage = m_settings->value("DefaultLanguage", "").toString();
+    m_ui->defaultLanguageComboBox->setCurrentText(defaultLanguage);
+
     m_settings->endGroup();
+
+    if (not defaultLanguage.isEmpty() and m_ui->defaultLanguageComboBox->currentText().isEmpty()) {
+        qCritical().noquote()
+            << tr("Language: %1 found in settings doesn't "
+                  "correspond to any supported at the moment.").arg(defaultLanguage);
+    }
 
     m_ui->widthEdit->setText(QString::number(width));
     m_ui->heightEdit->setText(QString::number(height));
@@ -151,10 +166,17 @@ Settings::Settings(QWidget *parent)
         &Settings::checkForChange
     );
 
+    connect(
+        m_ui->defaultLanguageComboBox,
+        &QComboBox::currentIndexChanged,
+        this,
+        &Settings::checkForChange
+    );
+
     connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->heightEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->audioOutputsCombo, &QComboBox::currentIndexChanged, this, &Settings::checkForChange);
-    connect(m_ui->applyWindowSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
+    connect(m_ui->applyInterfaceSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
     connect(m_ui->applyAudioSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
     connect(m_ui->applyPlaylistSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
 
@@ -222,7 +244,7 @@ void Settings::onCurrentChanged(int index)
     switch (index)
     {
     case 0:
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         break;
     case 1:
         m_ui->applyAudioSettingsButton->setEnabled(true);
@@ -306,6 +328,7 @@ void Settings::setInitialValues()
 
     m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] = m_ui->defaultPlaylistComboBox->currentIndex();
     m_initialComboBoxValues[m_ui->audioOutputsCombo] = m_ui->audioOutputsCombo->currentIndex();
+    m_initialComboBoxValues[m_ui->defaultLanguageComboBox] = m_ui->defaultLanguageComboBox->currentIndex();
 }
 
 /* Works, but is it the best way to check for a change? */
@@ -313,31 +336,31 @@ void Settings::checkForChange()
 {
     bool changed {false};
     if (m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] != m_ui->rememberWindowSizeCheckBox->isChecked()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->centeredCheckBox] != m_ui->centeredCheckBox->isChecked()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] != m_ui->alwaysMaximizedCheckBox->isChecked()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] != m_ui->minimizeToSystrayCheckBox->isChecked()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->hideControlsCheckBox] != m_ui->hideControlsCheckBox->isChecked()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
@@ -349,13 +372,13 @@ void Settings::checkForChange()
     }
 
     if (m_initialFieldValues[m_ui->widthEdit] != m_ui->widthEdit->text()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialFieldValues[m_ui->heightEdit] != m_ui->heightEdit->text()) {
-        m_ui->applyWindowSettingsButton->setEnabled(true);
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
@@ -378,6 +401,12 @@ void Settings::checkForChange()
         goto exit;
     }
 
+    if (m_initialComboBoxValues[m_ui->defaultLanguageComboBox] != m_ui->defaultLanguageComboBox->currentIndex()) {
+        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
 exit:
     m_modified = changed;
     auto title = windowTitle();
@@ -391,7 +420,7 @@ exit:
             setWindowTitle(title);
         }
 
-        m_ui->applyWindowSettingsButton->setEnabled(false);
+        m_ui->applyInterfaceSettingsButton->setEnabled(false);
         m_ui->applyAudioSettingsButton->setEnabled(false);
         m_ui->applyPlaylistSettingsButton->setEnabled(false);
     }
@@ -475,6 +504,7 @@ void Settings::applyChanges()
     bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
     bool minimizeToSystray = m_ui->minimizeToSystrayCheckBox->isChecked();
     bool hideControls = m_ui->hideControlsCheckBox->isChecked();
+    QString defaultLanguage = m_ui->defaultLanguageComboBox->currentText();
     bool rememberVolumeLevel = m_ui->rememberVolumeLevelCheckBox->isChecked();
     int width {-1};
     int height {-1};
@@ -540,6 +570,9 @@ void Settings::applyChanges()
         m_settings->setValue("Width", width);
     if (height >= 0)
         m_settings->setValue("Height", height);
+
+    m_settings->setValue("DefaultLanguage", defaultLanguage);
+
     m_settings->endGroup();
 
     m_settings->beginGroup("AudioSettings");
@@ -571,7 +604,7 @@ void Settings::applyChanges()
     setInitialValues();
     m_modified = false;
     m_changesApplied = true;
-    m_ui->applyWindowSettingsButton->setEnabled(m_modified);
+    m_ui->applyInterfaceSettingsButton->setEnabled(m_modified);
     m_ui->applyAudioSettingsButton->setEnabled(m_modified);
     m_ui->applyPlaylistSettingsButton->setEnabled(m_modified);
 }

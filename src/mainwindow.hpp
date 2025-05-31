@@ -4,7 +4,6 @@
 #include <QAction>
 #include <QCloseEvent>
 #include <QDir>
-#include <QListWidgetItem>
 #include <QMainWindow>
 #include <QMediaDevices>
 #include <QMouseEvent>
@@ -13,6 +12,7 @@
 #include <QShowEvent>
 #include <QStandardPaths>
 #include <QSystemTrayIcon>
+#include <QTreeWidgetItem>
 #ifdef ENABLE_VIDEO_PLAYER
     #include <QVideoWidget>
 #endif // ENABLE_VIDEO_PLAYER
@@ -66,6 +66,7 @@ private:
     QAction *m_showHideSystrayAction;
     QAction *m_playPauseSystrayAction;
     QAction *m_stopSystrayAction;
+    QAction *m_showHideControlsTreeWidgetAction;
     QAction *m_addSongToPlaylist;
     QAction *m_removeSongAction;
 
@@ -120,7 +121,7 @@ private slots:
     void positionChanged(qint64 position);
     void finished();
     void onChangeAudioDevice([[maybe_unused]] bool checked);
-    void onPlaylistItemDoubleClicked(QListWidgetItem *item);
+    void onPlaylistItemDoubleClicked(QTreeWidgetItem *item);
     void onRemoveSongActionTriggered([[maybe_unused]] bool triggered);
     QStringList findFiles(const QString &dir, const QStringList &filters);
     QStringList openFiles(bool justFiles = true);

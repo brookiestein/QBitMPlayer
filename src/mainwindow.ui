@@ -20,19 +20,13 @@
       <item>
        <layout class="QVBoxLayout" name="playlistVerticalLayout">
         <item>
-         <widget class="QLabel" name="playlistLabel">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Playlist</string>
-          </property>
+         <widget class="QTreeWidget" name="treeWidget">
+          <column>
+           <property name="text">
+            <string>Playlist:</string>
+           </property>
+          </column>
          </widget>
-        </item>
-        <item>
-         <widget class="QListWidget" name="playlistWidget"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="playlistControlsHorizontalLayout">

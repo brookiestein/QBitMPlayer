@@ -59,7 +59,7 @@ signals:
     void finished();
 #ifdef ENABLE_NOTIFICATIONS
     void nowPlaying(const QString &filename);
-#endif // USE_NOTIFICATIONS
+#endif // ENABLE_NOTIFICATIONS
 
 private:
     QString m_playlistName;
@@ -72,7 +72,7 @@ private:
     bool m_autoplay;
 #ifdef ENABLE_NOTIFICATIONS
     bool m_currentChanged;
-#endif // USE_NOTIFICATIONS
+#endif // ENABLE_NOTIFICATIONS
 };
 
 #endif // PLAYER_HPP

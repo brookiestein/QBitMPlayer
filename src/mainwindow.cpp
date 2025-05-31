@@ -51,7 +51,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
     m_ui->durationLabel->setText("00:00:00/00:00:00");
     m_ui->autoRepeatButton->setText("");
     m_ui->autoRepeatButton->setToolTip(
@@ -59,11 +58,26 @@ MainWindow::MainWindow(QWidget *parent)
     );
     m_ui->volumeIconButton->setToolTip(tr("Click to increase volume by 25%."));
 
+    m_showHideControlsTreeWidgetAction = new QAction(tr("Hide"), this);
+    m_showHideControlsTreeWidgetAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoPrevious));
+    auto *separator = new QAction(this);
+    separator->setSeparator(true);
     m_addSongToPlaylist = new QAction(tr("Add song to playlist"), this);
+    m_addSongToPlaylist->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew));
     m_removeSongAction = new QAction(tr("Remove song from playlist"), this);
-    m_ui->playlistWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-    m_ui->playlistWidget->addAction(m_addSongToPlaylist);
-    m_ui->playlistWidget->addAction(m_removeSongAction);
+    m_removeSongAction->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::EditDelete));
+
+    m_ui->treeWidget->setColumnCount(1);
+    m_ui->treeWidget->setHeaderLabel(tr("Playlist: Unnamed"));
+    m_ui->treeWidget->viewport()->setAcceptDrops(true);
+    m_ui->treeWidget->setDropIndicatorShown(true);
+    m_ui->treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+    m_ui->treeWidget->addActions({
+        m_showHideControlsTreeWidgetAction,
+        separator,
+        m_addSongToPlaylist,
+        m_removeSongAction
+    });
 
     m_settings = new QSettings(Settings::createEnvironment(), QSettings::IniFormat, this);
     setAudioOutputs();
@@ -165,7 +179,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionAboutQt, &QAction::triggered, this, &QApplication::aboutQt);
     connect(m_ui->actionHideShowControls, &QAction::triggered, this, &MainWindow::onHideShowControls);
-    connect(m_ui->playlistWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
+    connect(m_showHideControlsTreeWidgetAction, &QAction::triggered, this, &MainWindow::onHideShowControls);
+    connect(m_ui->treeWidget, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onPlaylistItemDoubleClicked);
     connect(m_ui->openFilesButton, &QPushButton::clicked, this, &MainWindow::onOpenFilesActionRequested);
     connect(m_ui->actionOpenPlaylist, &QAction::triggered, this, &MainWindow::onOpenPlayListActionRequested);
     connect(m_ui->actionClosePlaylist, &QAction::triggered, this, &MainWindow::onClosePlayListActionRequested);
@@ -428,7 +443,7 @@ void MainWindow::resetControls()
 
 QString MainWindow::musicName(const QString &filename)
 {
-    auto musicName = filename.mid(filename.lastIndexOf('/') + 1, filename.size());
+    auto musicName = filename.mid(filename.lastIndexOf(QDir::separator()) + 1, filename.size());
     musicName = musicName.mid(0, musicName.lastIndexOf('.'));
     return musicName;
 }
@@ -448,19 +463,25 @@ void MainWindow::onHideShowControls(bool triggered)
     if (sender()) // Toggle only if user clicked the menu action.
         m_controlsHidden = !m_controlsHidden;
 
+    QString text {};
+    QIcon icon {};
     if (m_controlsHidden) {
-        m_ui->actionHideShowControls->setText(tr("Show"));
-        m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoNext));
+        text = tr("Show");
+        icon = QIcon::fromTheme(QIcon::ThemeIcon::GoNext);
     } else {
-        m_ui->actionHideShowControls->setText(tr("Hide"));
-        m_ui->actionHideShowControls->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::GoPrevious));
+        text = tr("Hide");
+        icon = QIcon::fromTheme(QIcon::ThemeIcon::GoPrevious);
     }
 
-    m_ui->playlistLabel->setVisible(!m_controlsHidden);
+    m_ui->actionHideShowControls->setText(text);
+    m_ui->actionHideShowControls->setIcon(icon);
+    m_showHideControlsTreeWidgetAction->setText(text);
+    m_showHideControlsTreeWidgetAction->setIcon(icon);
+
     m_ui->playingLabel->setVisible(!m_controlsHidden);
     m_ui->playingEdit->setVisible(!m_controlsHidden);
     m_ui->openFilesButton->setVisible(!m_controlsHidden);
-    m_ui->playlistWidget->setVisible(!m_controlsHidden);
+    m_ui->treeWidget->setVisible(!m_controlsHidden);
     m_ui->openPlaylistButton->setVisible(!m_controlsHidden);
     m_ui->closePlayListButton->setVisible(!m_controlsHidden);
     m_ui->savePlaylistButton->setVisible(!m_controlsHidden);
@@ -518,12 +539,19 @@ void MainWindow::onOpenSongActionTriggered(bool triggered)
     m_playlistInitState = m_playlist;
     m_player.setPlayList(m_playlist);
     m_player.setCurrent(currentIndex);
-    m_ui->playlistWidget->clear();
+    m_ui->treeWidget->clear();
 
-    for (const auto &filename : m_playlist)
-        m_ui->playlistWidget->addItem(musicName(filename));
+    for (const auto &filename : m_playlist) {
+        m_ui->treeWidget->insertTopLevelItem(
+            0,
+            new QTreeWidgetItem(
+                static_cast<QTreeWidget *>(nullptr),
+                { musicName(filename) }
+            )
+        );
+    }
 
-    m_ui->playlistWidget->setCurrentRow(currentIndex);
+    m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(0));
     m_ui->playingEdit->setText(musicName(m_playlist[currentIndex]));
 }
 
@@ -603,12 +631,10 @@ void MainWindow::finished()
     switch (m_autorepeat)
     {
     case AUTOREPEAT::NONE:
-        if (m_player.playNext()) {
-            int index = m_ui->playlistWidget->currentIndex().row();
-            m_ui->playlistWidget->setCurrentRow(index + 1);
-        } else {
+        if (m_player.playNext())
+            m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(0));
+        else
             resetControls();
-        }
         break;
     case AUTOREPEAT::ONE:
         m_player.play();
@@ -618,13 +644,13 @@ void MainWindow::finished()
             m_player.play();
         } else {
             if (m_player.playNext()) {
-                int index = m_ui->playlistWidget->currentIndex().row();
-                m_ui->playlistWidget->setCurrentRow(index + 1);
+                int index = m_ui->treeWidget->currentIndex().row();
+                m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(index));
             } else {
                 /* We've reached the end of the playlist, let's start again. */
                 m_player.setCurrent(0);
                 m_player.play();
-                m_ui->playlistWidget->setCurrentRow(0);
+                m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(0));
             }
         }
         break;
@@ -657,10 +683,10 @@ void MainWindow::onChangeAudioDevice(bool checked)
     }
 }
 
-void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
+void MainWindow::onPlaylistItemDoubleClicked(QTreeWidgetItem *item)
 {
     /* Items in playlistWidget are added in the same order as those in m_playlist. */
-    auto index = m_ui->playlistWidget->indexFromItem(item).row();
+    auto index = m_ui->treeWidget->indexFromItem(item).row();
 
     m_player.stop();
     resetControls();
@@ -674,22 +700,20 @@ void MainWindow::onPlaylistItemDoubleClicked(QListWidgetItem *item)
 
 void MainWindow::onRemoveSongActionTriggered(bool triggered)
 {
-    auto selectedItems = m_ui->playlistWidget->selectedItems();
+    auto selectedItems = m_ui->treeWidget->selectedItems();
     if (selectedItems.isEmpty()) {
         return;
     }
 
     /* Remember that playlistWidget has its items added in the same order as m_playlist */
-    auto index = m_ui->playlistWidget->indexFromItem(selectedItems[0]).row();
-    auto *item = m_ui->playlistWidget->takeItem(index);
-    delete item;
+    auto index = m_ui->treeWidget->indexFromItem(selectedItems[0]).row();
+    m_ui->treeWidget->removeItemWidget(selectedItems[0], 0);
 
     auto filename = m_playlist[index];
     m_playlist.removeAt(index);
 
-    if (filename == m_player.currentMusicFilename()) {
+    if (filename == m_player.currentMusicFilename())
         onClosePlayListActionRequested();
-    }
 
     m_playlistSettings->beginGroup("Playlists");
     for (const auto &playlist : m_playlistSettings->childGroups()) {
@@ -699,7 +723,7 @@ void MainWindow::onRemoveSongActionTriggered(bool triggered)
 
             if (m_playlistSettings->allKeys().isEmpty()) {
                 m_playlistSettings->remove(playlist);
-                m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
+                m_ui->treeWidget->setHeaderLabel(tr("Playlist: Unnamed"));
 
                 m_settings->beginGroup("PlaylistSettings");
                 if (m_settings->value("DefaultPlaylist").toString() == playlist) {
@@ -794,6 +818,7 @@ QStringList MainWindow::openFiles(bool justFiles)
 
     filters = QString("%1)").arg(filters.trimmed());
 
+    QStringList files;
     if (justFiles)
         return QFileDialog::getOpenFileNames(this,
                                              tr("Open Audio Files"),
@@ -810,12 +835,12 @@ QStringList MainWindow::openFiles(bool justFiles)
                   .replace(")", "")
                   .replace("*", "");
 
-    auto files = findFiles(dir, filters.split(' '));
+    files = findFiles(dir, filters.split(' '));
 
-    if (not files.isEmpty() and m_ui->playlistLabel->text().contains(tr("Unnamed"))) {
+    if (not files.isEmpty() and m_ui->treeWidget->headerItem()->text(0).contains(tr("Unnamed"))) {
         auto playlistName = dir.mid(dir.lastIndexOf('/') + 1);
-        m_ui->playlistLabel->setText(tr("Playlist: %1*").arg(playlistName));
-        m_ui->playlistLabel->setToolTip(tr("Playlist is currently not saved."));
+        m_ui->treeWidget->setHeaderLabel(tr("Playlist: %1*").arg(playlistName));
+        m_ui->treeWidget->headerItem()->setToolTip(0, tr("Playlist is currently not saved."));
     }
 
     return files;
@@ -824,7 +849,7 @@ QStringList MainWindow::openFiles(bool justFiles)
 void MainWindow::onOpenFilesActionRequested()
 {
     bool wasPlaylistEmpty = m_playlist.isEmpty();
-    QStringList playlist = openFiles(sender() != m_ui->actionOpen_Directory);
+    auto playlist = openFiles(sender() != m_ui->actionOpen_Directory);
 
     if (playlist.isEmpty()) {
         return;
@@ -837,7 +862,14 @@ void MainWindow::onOpenFilesActionRequested()
     m_settings->beginGroup("Recents/Songs");
     for (const auto &filename : playlist) {
         auto name = musicName(filename);
-        m_ui->playlistWidget->addItem(name);
+
+        m_ui->treeWidget->insertTopLevelItem(
+            0,
+            new QTreeWidgetItem(
+                static_cast<QTreeWidget *>(nullptr),
+                { name }
+            )
+        );
 
         if (wasPlaylistEmpty and not m_settings->childKeys().contains(filename))
             m_settings->setValue(name, filename);
@@ -849,10 +881,12 @@ void MainWindow::onOpenFilesActionRequested()
     }
     m_settings->endGroup();
 
+    m_ui->treeWidget->sortItems(0, Qt::AscendingOrder);
+
     if (wasPlaylistEmpty) {
         m_player.setCurrent(0);
         m_ui->playingEdit->setText(musicName(m_playlist[0]));
-        m_ui->playlistWidget->setCurrentRow(0);
+        m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(0));
     }
 }
 
@@ -900,6 +934,7 @@ void MainWindow::loadPlaylist(const QString &playlistName)
     m_playlistSettings->beginGroup("Playlists");
     m_playlistSettings->beginGroup(playlistName);
 
+    QList<QTreeWidgetItem *> items;
     for (auto filename : m_playlistSettings->allKeys()) {
 #ifdef Q_OS_LINUX
         /* For some reason QSettings removes the first slash.
@@ -908,8 +943,20 @@ void MainWindow::loadPlaylist(const QString &playlistName)
 #endif
         m_playlist << filename;
         auto name = musicName(m_playlistSettings->value(filename).toString());
-        m_ui->playlistWidget->addItem(name);
+
+        items.append(
+            new QTreeWidgetItem(
+                static_cast<QTreeWidget *>(nullptr),
+                { name }
+            )
+        );
     }
+
+    m_playlist.sort();
+
+    m_ui->treeWidget->setHeaderLabel(tr("Playlist: %1").arg(playlistName));
+    m_ui->treeWidget->insertTopLevelItems(0, items);
+    m_ui->treeWidget->sortItems(0, Qt::AscendingOrder);
 
     m_playlistInitState = m_playlist;
     m_player.setPlaylistName(playlistName);
@@ -919,9 +966,9 @@ void MainWindow::loadPlaylist(const QString &playlistName)
     m_playlistSettings->endGroup(); /* Playlists */
     m_playlistSettings->endGroup(); /* playlist */
 
-    m_ui->playlistLabel->setText(tr("Playlist: %1").arg(playlistName));
-    m_ui->playlistLabel->setToolTip("");
-    m_ui->playlistWidget->setCurrentRow(0);
+    m_ui->treeWidget->setHeaderLabel(tr("Playlist: %1").arg(playlistName));
+    m_ui->treeWidget->headerItem()->setToolTip(0, "");
+    m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(0));
     m_ui->playingEdit->setText(musicName(m_playlist[0]));
 
     m_currentPlaylistName = playlistName;
@@ -980,10 +1027,11 @@ void MainWindow::onClosePlayListActionRequested()
 {
     m_player.clearSource();
     m_playlist.clear();
-    m_ui->playlistLabel->setText(tr("Playlist: Unnamed"));
-    m_ui->playlistLabel->setToolTip("");
+    m_ui->treeWidget->setHeaderLabel(tr("Playlist: Unnamed"));
+    m_ui->treeWidget->headerItem()->setToolTip(0, "");
     m_currentPlaylistName.clear();
-    m_ui->playlistWidget->clear();
+    m_ui->treeWidget->clear();
+    m_ui->treeWidget->setHeaderLabel(tr("Playlist: Unnamed"));
     m_ui->playingEdit->setText("");
     m_ui->playButton->setText(tr("Play"));
     m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackStart));
@@ -1004,7 +1052,7 @@ void MainWindow::onSavePlayListActionRequested()
     QString name;
     QStringList songs;
 
-    if (m_ui->playlistLabel->text() == tr("Playlist: Unnamed")) {
+    if (m_ui->treeWidget->headerItem()->text(0) == tr("Playlist: Unnamed")) {
         name = QInputDialog::getText(this,
                                      tr("Give it a name"),
                                      tr("How should we call this awesome playlist?"));
@@ -1024,7 +1072,7 @@ void MainWindow::onSavePlayListActionRequested()
             return;
         }
 
-        name = m_ui->playlistLabel->text();
+        name = m_ui->treeWidget->headerItem()->text(0);
         name = name.mid(name.indexOf(':') + 2);
         if (name.endsWith('*'))
             name = name.mid(0, name.lastIndexOf('*'));
@@ -1051,7 +1099,7 @@ void MainWindow::onSavePlayListActionRequested()
     m_playlistSettings->endGroup(); /* name */
     m_playlistSettings->endGroup(); /* Playlists */
 
-    m_ui->playlistLabel->setText(tr("Playlist: %1").arg(name));
+    m_ui->treeWidget->setHeaderLabel(tr("Playlist: %1").arg(name));
     m_currentPlaylistName = name;
 
     if (not updated) {
@@ -1075,7 +1123,6 @@ void MainWindow::onSavePlayListActionRequested()
                        ? tr("Playlist %1 has been updated!").arg(name)
                        : tr("Now you can play all the awesome music %1 has!").arg(name);
 
-    m_ui->playlistLabel->setToolTip("");
     QMessageBox::information(this, tr("Yay!"), message);
 }
 
@@ -1187,7 +1234,7 @@ void MainWindow::onPlayPrevious()
 {
     if (m_player.playPrevious()) {
         int index = m_player.currentIndex();
-        m_ui->playlistWidget->setCurrentRow(index);
+        m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(index));
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
     } /* No need to warn because player emits a warning signal and it's caught by this class. */
 }
@@ -1196,7 +1243,7 @@ void MainWindow::onPlayNext()
 {
     if (m_player.playNext()) {
         int index = m_player.currentIndex();
-        m_ui->playlistWidget->setCurrentRow(index);
+        m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(index));
         m_ui->playingEdit->setText(musicName(m_playlist[index]));
         m_ui->playButton->setText(tr("Pause"));
         m_ui->playButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::MediaPlaybackPause));

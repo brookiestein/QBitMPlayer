@@ -9,10 +9,10 @@
 #include <QTranslator>
 #include <iostream>
 #include <string>
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
     #include <QDBusConnection>
     #include <QDBusMessage>
-#endif // USE_IPC
+#endif // ENABLE_IPC
 
 #include "config.hpp"
 #include "player.hpp"
@@ -28,9 +28,9 @@ const QMap<QString, QString> availableLanguages {
 QList<QCommandLineOption> commandLineOptions();
 /* Prompts user for a reply with a QMessageBox or in the command line. */
 QMessageBox::StandardButton showMessage(int argc, const QString &message, bool question);
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
     void registerDBusService(MainWindow &m);
-#endif // USE_IPC
+#endif // ENABLE_IPC
 
 int main(int argc, char *argv[])
 {
@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.process(a);
 
+    QSettings settings(Settings::createEnvironment(), QSettings::IniFormat);
     QTranslator translator;
 
     if (parser.isSet("language")) {
@@ -73,17 +74,52 @@ int main(int argc, char *argv[])
             }
         }
     } else {
-        const QStringList uiLanguages = QLocale::system().uiLanguages();
-        for (const QString &locale : uiLanguages) {
-            const QString baseName = "QBitMPlayer_" + QLocale(locale).name();
-            if (translator.load(":/i18n/" + baseName)) {
-                a.installTranslator(&translator);
-                break;
+        settings.beginGroup("WindowSettings");
+        auto defaultLanguage = settings.value("DefaultLanguage", "").toString();
+        settings.endGroup();
+
+        if (defaultLanguage.isEmpty()) {
+            const QStringList uiLanguages = QLocale::system().uiLanguages();
+            for (const QString &locale : uiLanguages) {
+                const QString baseName = "QBitMPlayer_" + QLocale(locale).name();
+                if (translator.load(":/i18n/" + baseName)) {
+                    a.installTranslator(&translator);
+                    break;
+                }
             }
+        } else if (defaultLanguage == "English") {
+            // No need to set because it's the default one.
+        } else if (defaultLanguage == "Español") {
+            if (translator.load(availableLanguages["es"])) {
+                a.installTranslator(&translator);
+            } else {
+                auto reply = showMessage(
+                    argc,
+                    QObject::tr("Language: Español couldn't be loaded. "
+                                "Would you like to continue with English?"),
+                    true
+                );
+
+                if (reply != QMessageBox::Yes) {
+                    return 1;
+                }
+            }
+
+            qDebug().noquote() << QObject::tr("Interface language set to "
+                                              "Español because it was set "
+                                              "in the configurations.");
+        } else {
+            showMessage(
+                argc,
+                QObject::tr("Language: %1 found in settings doesn't "
+                            "correspond to any supported at the moment.")
+                    .arg(defaultLanguage),
+                false
+            );
         }
     }
 
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
     if (parser.isSet("next")) {
         QDBusConnection::sessionBus().send(
             QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "playNext")
@@ -105,18 +141,17 @@ int main(int argc, char *argv[])
         );
         return EXIT_SUCCESS;
     }
-#endif // USE_IPC
+#endif // ENABLE_IPC
 
     /* If user didn't provide any command line option or just set language, show the GUI. */
     if (argc == 1 or (parser.isSet("language") and argc == 3)) {
         MainWindow w;
         bool maximized {false};
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
         registerDBusService(w);
-#endif // USE_IPC
+#endif // ENABLE_IPC
 
         {
-            QSettings settings(Settings::createEnvironment(), QSettings::IniFormat);
             settings.beginGroup("WindowSettings");
 
             // If MinimizeToSystray == false, then do close on last window closed.
@@ -196,7 +231,7 @@ QList<QCommandLineOption> commandLineOptions()
         "language"
     );
 
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
     options << QCommandLineOption(
         QStringList() << "n" << "next",
         QObject::tr("Tell an existing %1 instance to play the next song if any.").arg(PROJECT_NAME)
@@ -216,7 +251,7 @@ QList<QCommandLineOption> commandLineOptions()
         QStringList() << "s" << "stop",
         QObject::tr("Tell an existing %1 instance to stop the player.").arg(PROJECT_NAME)
     );
-#endif
+#endif // ENABLE_IPC
 
     return options;
 }
@@ -247,7 +282,7 @@ QMessageBox::StandardButton showMessage(int argc, const QString &message, bool q
     return QMessageBox::Yes;
 }
 
-#ifdef USE_IPC
+#ifdef ENABLE_IPC
 void registerDBusService(MainWindow &m)
 {
     auto connection = QDBusConnection::sessionBus();
@@ -271,4 +306,4 @@ void registerDBusService(MainWindow &m)
         return;
     }
 }
-#endif // USE_IPC
+#endif // ENABLE_IPC
