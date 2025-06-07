@@ -63,6 +63,8 @@ private:
     VideoPlayer m_videoPlayer;
 #endif
     QSystemTrayIcon m_systray;
+    QAction *m_clearRecentSongs;
+    QAction *m_clearRecentPlaylists;
     QAction *m_showHideSystrayAction;
     QAction *m_playPauseSystrayAction;
     QAction *m_stopSystrayAction;
@@ -115,6 +117,7 @@ private slots:
     void onQuit();
     void error(const QString &message);
     void warning(const QString &message);
+    void clearRecents();
     void onHideShowControls([[maybe_unused]] bool triggered);
     void onOpenSongActionTriggered([[maybe_unused]] bool triggered);
     void durationChanged(qint64 duration);
@@ -153,6 +156,9 @@ public slots:
     Q_SCRIPTABLE void playPrevious();
     Q_SCRIPTABLE void playNext();
     Q_SCRIPTABLE void stop();
+#ifdef SINGLE_INSTANCE
+    Q_SCRIPTABLE void show();
+#endif // SINGLE_INSTANCE
 #endif // ENABLE_IPC
 };
 #endif // MAINWINDOW_HPP

@@ -24,7 +24,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui {new Ui::MainWindow}
-    , m_systray(QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer), this)
+    , m_systray {QIcon::fromTheme(QIcon::ThemeIcon::MultimediaPlayer), this}
     , m_canModifySlider {true}
     , m_quitShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_Q), this)}
     , m_openFilesShortcut {new QShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_O), this)}
@@ -112,16 +112,45 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_settings->beginGroup("PlaylistSettings");
     auto playlistName = m_settings->value("DefaultPlaylist", "").toString();
+
     if (not playlistName.isEmpty() and playlistName != "None") {
         loadPlaylist(playlistName);
+
+        if (m_settings->value("RememberLastSong", false).toBool()) {
+            auto lastSong = m_settings->value("LastSong", "").toString();
+
+            if (not lastSong.isEmpty()) {
+                if (m_playlist.contains(lastSong)) {
+                    int index = m_playlist.indexOf(lastSong);
+                    m_player.setCurrent(index);
+                    m_ui->treeWidget->setCurrentItem(m_ui->treeWidget->topLevelItem(index));
+                    m_ui->playingEdit->setText(musicName(m_playlist[index]));
+                } else {
+                    QMessageBox::warning(
+                        this,
+                        tr("Song not found"),
+                        tr("Last song: %1 not found.").arg(lastSong)
+                    );
+                }
+            }
+        }
     }
     m_settings->endGroup();
 
     m_settings->beginGroup("Recents");
     m_settings->beginGroup("Playlists");
 
+    m_clearRecentPlaylists = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::EditClear),
+        tr("Clear"),
+        this
+    );
+
+    connect(m_clearRecentPlaylists, &QAction::triggered, this, &MainWindow::clearRecents);
+    m_ui->menuPlaylists->addAction(m_clearRecentPlaylists);
+
     for (const auto &playlist : m_settings->childKeys()) {
-        auto *action = new QAction(playlist, this);
+        auto *action = new QAction(playlist, m_ui->menuPlaylists);
         m_ui->menuPlaylists->addAction(action);
 
         connect(action, &QAction::triggered, this, [this] ([[maybe_unused]] bool triggered) {
@@ -131,10 +160,21 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     m_settings->endGroup(); // Playlists;
+
+    m_clearRecentSongs = new QAction(
+        QIcon::fromTheme(QIcon::ThemeIcon::EditClear),
+        tr("Clear"),
+        this
+    );
+
+    connect(m_clearRecentSongs, &QAction::triggered, this, &MainWindow::clearRecents);
+
+    m_ui->menuSongs->addAction(m_clearRecentSongs);
+
     m_settings->beginGroup("Songs");
 
     for (const auto &song : m_settings->childKeys()) {
-        auto *action = new QAction(song, this);
+        auto *action = new QAction(song, m_ui->menuSongs);
         m_ui->menuSongs->addAction(action);
 
         connect(action, &QAction::triggered, this, &MainWindow::onOpenSongActionTriggered);
@@ -248,6 +288,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
     m_settings->beginGroup("AudioSettings");
     if (m_settings->value("RememberVolumeLevel", false).toBool()) {
         m_settings->setValue("VolumeLevel", m_ui->volumeSlider->value());
+    }
+    m_settings->endGroup();
+
+    m_settings->beginGroup("PlaylistSettings");
+    if (m_settings->value("RememberLastSong", false).toBool() and not m_currentPlaylistName.isEmpty()) {
+        auto filename = m_playlist[m_ui->treeWidget->currentIndex().row()];
+        m_settings->setValue("LastSong", filename);
     }
     m_settings->endGroup();
 
@@ -454,6 +501,43 @@ void MainWindow::error(const QString &message)
 void MainWindow::warning(const QString &message)
 {
     QMessageBox::warning(this, tr("Warning"), message);
+}
+
+void MainWindow::clearRecents()
+{
+    auto *action = qobject_cast<QAction *>(sender());
+    Q_ASSERT_X(action != nullptr, "Must be called as a slot of a QAction.", Q_FUNC_INFO);
+
+    Q_ASSERT_X(
+        action == m_clearRecentSongs || action == m_clearRecentPlaylists,
+        "This slot is specifically to clear recent songs or playlists.",
+        Q_FUNC_INFO
+    );
+
+    if (action == m_clearRecentSongs)
+        m_settings->beginGroup("Recents/Songs");
+    else
+        m_settings->beginGroup("Recents/Playlists");
+
+    auto keys = m_settings->childKeys();
+    for (const auto &key : keys)
+        m_settings->remove(key);
+    m_settings->endGroup();
+
+    QMenu *holderMenu = nullptr;
+
+    if (action == m_clearRecentSongs)
+        holderMenu = m_ui->menuSongs;
+    else
+        holderMenu = m_ui->menuPlaylists;
+
+    QList<QAction *> items = holderMenu->actions();
+
+    for (auto *item : items) {
+        if (item == action)
+            continue;
+        holderMenu->removeAction(item);
+    }
 }
 
 void MainWindow::onHideShowControls(bool triggered)
@@ -1022,6 +1106,14 @@ void MainWindow::sendNotification(const QString &name)
     delete notifier;
 #endif // ENABLE_NOTIFICATIONS
 }
+
+#if defined(ENABLE_IPC) && defined(SINGLE_INSTANCE)
+void MainWindow::show()
+{
+    setVisible(true);
+    m_showHideSystrayAction->setText(tr("Hide"));
+}
+#endif
 
 void MainWindow::onClosePlayListActionRequested()
 {

@@ -125,9 +125,17 @@ Settings::Settings(QWidget *parent)
     m_ui->audioStateLabel->setText(stateText);
     m_ui->playlistStateLabel->setText(stateText);
 
+    m_settings->beginGroup("PlaylistSettings");
+    bool rememberLastSong = m_settings->value("RememberLastSong", false).toBool();
+    m_settings->endGroup();
+    m_ui->rememberLastSongCheckBox->setChecked(rememberLastSong);
+
     loadPlaylists();
     setAudioOutputs();
     setInitialValues();
+
+    if (m_ui->defaultPlaylistComboBox->currentIndex() == 0)
+        m_ui->rememberLastSongCheckBox->setEnabled(false);
 
     connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &Settings::onCurrentChanged);
 
@@ -192,6 +200,19 @@ Settings::Settings(QWidget *parent)
     connect(
         m_ui->defaultPlaylistComboBox,
         &QComboBox::currentIndexChanged,
+        this,
+        [this] (int index) {
+            if (index == 0)
+                m_ui->rememberLastSongCheckBox->setEnabled(false);
+            else
+                m_ui->rememberLastSongCheckBox->setEnabled(true);
+            checkForChange();
+        }
+    );
+
+    connect(
+        m_ui->rememberLastSongCheckBox,
+        &QCheckBox::checkStateChanged,
         this,
         &Settings::checkForChange
     );
@@ -321,6 +342,7 @@ void Settings::setInitialValues()
     m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] = m_ui->minimizeToSystrayCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->hideControlsCheckBox] = m_ui->hideControlsCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->rememberLastSongCheckBox] = m_ui->rememberLastSongCheckBox->isChecked();
 
     m_initialFieldValues[m_ui->widthEdit] = m_ui->widthEdit->text();
     m_initialFieldValues[m_ui->heightEdit] = m_ui->heightEdit->text();
@@ -367,6 +389,12 @@ void Settings::checkForChange()
 
     if (m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] != m_ui->rememberVolumeLevelCheckBox->isChecked()) {
         m_ui->applyAudioSettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+
+    if (m_initialCheckBoxesValues[m_ui->rememberLastSongCheckBox] != m_ui->rememberLastSongCheckBox->isChecked()) {
+        m_ui->applyPlaylistSettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
@@ -587,8 +615,8 @@ void Settings::applyChanges()
     m_settings->setValue("DefaultAudioOutput", id);
     m_settings->endGroup();
 
+    m_settings->beginGroup("PlaylistSettings");
     if (m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] != m_ui->defaultPlaylistComboBox->currentIndex()) {
-        m_settings->beginGroup("PlaylistSettings");
 
         /* Don't translate this value for setting. */
         auto name = m_ui->defaultPlaylistComboBox->currentText();
@@ -597,8 +625,10 @@ void Settings::applyChanges()
         }
 
         m_settings->setValue("DefaultPlaylist", name);
-        m_settings->endGroup();
     }
+
+    m_settings->setValue("RememberLastSong", m_ui->rememberLastSongCheckBox->isChecked());
+    m_settings->endGroup();
 
     setWindowTitle(windowTitle().mid(0, windowTitle().indexOf('*')));
     setInitialValues();

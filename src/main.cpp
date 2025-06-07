@@ -13,6 +13,13 @@
     #include <QDBusConnection>
     #include <QDBusMessage>
 #endif // ENABLE_IPC
+#ifdef SINGLE_INSTANCE
+    #include <QTimer>
+    #include <QTcpServer>
+    #include <QTcpSocket>
+
+    #define SERVER_PORT 20640
+#endif // SINGLE_INSTANCE
 
 #include "config.hpp"
 #include "player.hpp"
@@ -28,6 +35,11 @@ const QMap<QString, QString> availableLanguages {
 QList<QCommandLineOption> commandLineOptions();
 /* Prompts user for a reply with a QMessageBox or in the command line. */
 QMessageBox::StandardButton showMessage(int argc, const QString &message, bool question);
+
+#ifdef SINGLE_INSTANCE
+    bool isAnotherInstanceRunning();
+#endif
+
 #ifdef ENABLE_IPC
     void registerDBusService(MainWindow &m);
 #endif // ENABLE_IPC
@@ -143,6 +155,31 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 #endif // ENABLE_IPC
+
+#ifdef SINGLE_INSTANCE
+#ifndef ENABLE_IPC
+#error SINGLE_INSTANCE must be in combination with ENABLE_IPC.
+#endif // ENABLE_IPC
+    QTcpServer server;
+    QObject::connect(&server, &QTcpServer::newConnection, [&server] () {
+        QDBusConnection::sessionBus().send(
+            QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "show")
+        );
+
+        server.nextPendingConnection()->deleteLater();
+    });
+
+    if (isAnotherInstanceRunning()) {
+        QDBusConnection::sessionBus().send(
+            QDBusMessage::createMethodCall(SERVICE_NAME, "/Listen", "", "show")
+        );
+        return EXIT_SUCCESS;
+    } else {
+        server.listen(QHostAddress::LocalHost, SERVER_PORT);
+    }
+#else
+    qInfo().noquote() << QObject::tr("Not built with support for detecting other running instances.");
+#endif // SINGLE_INSTANCE
 
     /* If user didn't provide any command line option or just set language, show the GUI. */
     if (argc == 1 or (parser.isSet("language") and argc == 3)) {
@@ -260,21 +297,20 @@ QList<QCommandLineOption> commandLineOptions()
 QMessageBox::StandardButton showMessage(int argc, const QString &message, bool question)
 {
     if (argc == 3) {
-        if (question) {
+        if (question)
             return QMessageBox::question(nullptr, QObject::tr("Question"), message);
-        } else {
+        else
             return QMessageBox::critical(nullptr, QObject::tr("Error"), message);
-        }
     } else {
         if (question) {
             std::string input;
             std::cout << message.toStdString() << " [Y/N]: ";
             std::getline(std::cin, input);
-            if (QString(input.c_str()).contains("Y", Qt::CaseInsensitive)) {
+
+            if (QString(input.c_str()).contains("Y", Qt::CaseInsensitive))
                 return QMessageBox::Yes;
-            } else {
+            else
                 return QMessageBox::No;
-            }
         } else {
             qInfo().noquote() << message;
         }
@@ -282,6 +318,49 @@ QMessageBox::StandardButton showMessage(int argc, const QString &message, bool q
 
     return QMessageBox::Yes;
 }
+
+#ifdef SINGLE_INSTANCE
+bool isAnotherInstanceRunning()
+{
+    bool running {};
+    QEventLoop loop;
+
+    QTimer timer;
+    timer.setInterval(3'000);
+
+    QObject::connect(&timer, &QTimer::timeout, [&loop] () {
+        loop.quit();
+    });
+
+    QTcpSocket socket;
+    QObject::connect(&socket, &QTcpSocket::connected, [&running, &loop] () {
+        QMessageBox::warning(
+            nullptr,
+            QObject::tr("Another Instance is Running"),
+            QObject::tr("Detected another instance running, showing that one. "
+                        "Please take in account that this will only work if you "
+                        "first started %1's window.").arg(PROJECT_NAME)
+        );
+
+        running = true;
+        loop.quit();
+    });
+
+    QObject::connect(&socket, &QTcpSocket::errorOccurred, [&timer, &loop] () {
+        timer.stop();
+        loop.quit();
+    });
+
+    socket.connectToHost(QHostAddress::LocalHost, SERVER_PORT);
+
+    // waitForConnected
+    timer.start();
+
+    loop.exec();
+
+    return running;
+}
+#endif // SINGLE_INSTANCE
 
 #ifdef ENABLE_IPC
 void registerDBusService(MainWindow &m)

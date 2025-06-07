@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(QBitMPlayer
-    VERSION 3.1.2
+    VERSION 3.2.0
     LANGUAGES CXX
     DESCRIPTION "Music Player written in C++ & Qt."
 )
@@ -55,6 +55,13 @@ if (ENABLE_VIDEO_PLAYER)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS MultimediaWidgets)
 
     add_compile_definitions(ENABLE_VIDEO_PLAYER="1")
+endif()
+
+if (SINGLE_INSTANCE)
+    find_package(QT NAMES Qt6 REQUIRED COMPONENTS Network)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
+
+    add_compile_definitions(SINGLE_INSTANCE="1")
 endif()
 
 set(TS_FILES resources/i18n/QBitMPlayer_es_MX.ts)
@@ -168,6 +175,12 @@ endif()
 if (ENABLE_VIDEO_PLAYER)
     target_link_libraries(qbitmplayer PRIVATE
         Qt${QT_VERSION_MAJOR}::MultimediaWidgets
+    )
+endif()
+
+if (SINGLE_INSTANCE)
+    target_link_libraries(qbitmplayer PRIVATE
+        Qt${QT_VERSION_MAJOR}::Network
     )
 endif()
 
