@@ -394,21 +394,10 @@ void MainWindow::showEvent(QShowEvent *event)
         &QSystemTrayIcon::activated,
         this,
         [this] (QSystemTrayIcon::ActivationReason reason) {
-            switch (reason)
-            {
-            case QSystemTrayIcon::Unknown:
-                break;
-            case QSystemTrayIcon::Context:
-                break;
-            case QSystemTrayIcon::DoubleClick:
-                break;
-            case QSystemTrayIcon::Trigger:
-                break;
-            case QSystemTrayIcon::MiddleClick:
+            if (reason == QSystemTrayIcon::DoubleClick or reason == QSystemTrayIcon::MiddleClick)
                 m_showHideSystrayAction->trigger();
-                break;
-            }
-        });
+        }
+    );
 
     m_systray.show();
 
@@ -598,6 +587,16 @@ void MainWindow::onOpenSongActionTriggered(bool triggered)
         return;
     }
     m_settings->endGroup();
+
+    if (QFile file(filename); not file.exists()) {
+        QMessageBox::critical(
+            this,
+            tr("Error"),
+            tr("The file: %1 no longer exists.").arg(filename)
+        );
+
+        return;
+    }
 
     qint64 currentIndex {};
     if (not m_currentPlaylistName.isEmpty()) {
