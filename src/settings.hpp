@@ -33,7 +33,6 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void onCurrentChanged(int index);
     void checkForChange();
     void onRememberWindowSizeChecked(Qt::CheckState state);
     void onAlwaysMaximizedChecked(Qt::CheckState state);

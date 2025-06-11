@@ -95,10 +95,9 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    m_controlsHidden = m_settings->value("HideControls", false).toBool();
-    if (m_controlsHidden) {
+    m_controlsHidden = m_settings->value("HideControlsAtStartup", false).toBool();
+    if (m_controlsHidden)
         onHideShowControls(true);
-    }
 
     m_settings->endGroup();
 
@@ -200,6 +199,13 @@ MainWindow::MainWindow(QWidget *parent)
         case Player::MEDIA_TYPE::VIDEO:
             m_ui->videoPlayerPlaceholderWidget->setVisible(false);
             m_videoPlayer.setVisible(true);
+            m_settings->beginGroup("WindowSettings");
+
+            if (m_settings->value("HideControlsOnVideo", false).toBool())
+                if (m_ui->actionHideShowControls->text() == tr("Hide"))
+                    m_ui->actionHideShowControls->trigger();
+
+            m_settings->endGroup();
             break;
         }
     });

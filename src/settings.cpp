@@ -18,10 +18,6 @@ Settings::Settings(QWidget *parent)
     , m_quitShortcut {new QShortcut(QKeySequence(Qt::Key_Escape), this)}
 {
     m_ui->setupUi(this);
-    m_ui->tabWidget->setTabText(0, tr("Interface"));
-    m_ui->tabWidget->setTabText(1, tr("Audio"));
-    m_ui->tabWidget->setTabText(2, tr("Playlist"));
-    m_ui->tabWidget->setCurrentIndex(0);
     setWindowTitle(tr("%1 - Settings").arg(PROJECT_NAME));
 
     auto *widthValidator = new QIntValidator(0, screen()->geometry().width(), this);
@@ -31,9 +27,7 @@ Settings::Settings(QWidget *parent)
     m_ui->widthEdit->setValidator(widthValidator);
     m_ui->heightEdit->setValidator(heightValidator);
     m_ui->volumeLevelEdit->setValidator(volumeValidator);
-    m_ui->applyInterfaceSettingsButton->setEnabled(false);
-    m_ui->applyAudioSettingsButton->setEnabled(false);
-    m_ui->applyPlaylistSettingsButton->setEnabled(false);
+    m_ui->applySettingsButton->setEnabled(false);
 
     m_ui->centeredCheckBox->setToolTip(
         tr("If checked, floating window will always be opened "
@@ -49,9 +43,9 @@ Settings::Settings(QWidget *parent)
            "when asking to close, for example, by pressing the close button.")
     );
 
-    m_ui->hideControlsCheckBox->setToolTip(
+    m_ui->hideControlsAtStartupCheckBox->setToolTip(
         tr("Hide playlist and buttons controlling it by default "
-           "which can be shown again in the menu.")
+           "which can be shown again from the menu bar.")
     );
 
     m_playlistSettings = new QSettings(
@@ -62,6 +56,18 @@ Settings::Settings(QWidget *parent)
 
     m_settings = new QSettings(createEnvironment(), QSettings::IniFormat, this);
     m_settings->beginGroup("WindowSettings");
+
+#ifdef ENABLE_VIDEO_PLAYER
+    m_ui->hideControlsOnVideoCheckBox->setToolTip(
+        tr("Hide playlist and buttons controlling it when opening a video "
+           "which can be shown again from the menu bar.")
+    );
+    m_ui->hideControlsOnVideoCheckBox->setChecked(
+        m_settings->value("HideControlsOnVideo", false).toBool()
+    );
+#else
+    m_ui->hideControlsOnVideoCheckBox->setVisible(false);
+#endif
 
     auto state = m_settings->value("RememberWindowSize", false).toBool() ? Qt::Checked : Qt::Unchecked;
     m_ui->rememberWindowSizeCheckBox->setCheckState(state);
@@ -84,7 +90,7 @@ Settings::Settings(QWidget *parent)
     int width = m_settings->value("Width", geometry().width()).toInt();
     int height = m_settings->value("Height", geometry().height()).toInt();
 
-    m_ui->hideControlsCheckBox->setChecked(m_settings->value("HideControls", false).toBool());
+    m_ui->hideControlsAtStartupCheckBox->setChecked(m_settings->value("HideControlsAtStartup", false).toBool());
 
     m_ui->defaultLanguageComboBox->addItems({
         "",
@@ -122,8 +128,6 @@ Settings::Settings(QWidget *parent)
 
     auto stateText = tr("Changes will apply on reboot.");
     m_ui->windowStateLabel->setText(stateText);
-    m_ui->audioStateLabel->setText(stateText);
-    m_ui->playlistStateLabel->setText(stateText);
 
     m_settings->beginGroup("PlaylistSettings");
     bool rememberLastSong = m_settings->value("RememberLastSong", false).toBool();
@@ -136,8 +140,6 @@ Settings::Settings(QWidget *parent)
 
     if (m_ui->defaultPlaylistComboBox->currentIndex() == 0)
         m_ui->rememberLastSongCheckBox->setEnabled(false);
-
-    connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &Settings::onCurrentChanged);
 
     connect(
         m_ui->rememberWindowSizeCheckBox,
@@ -168,7 +170,14 @@ Settings::Settings(QWidget *parent)
     );
 
     connect(
-        m_ui->hideControlsCheckBox,
+        m_ui->hideControlsAtStartupCheckBox,
+        &QCheckBox::checkStateChanged,
+        this,
+        &Settings::checkForChange
+    );
+
+    connect(
+        m_ui->hideControlsOnVideoCheckBox,
         &QCheckBox::checkStateChanged,
         this,
         &Settings::checkForChange
@@ -184,9 +193,7 @@ Settings::Settings(QWidget *parent)
     connect(m_ui->widthEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->heightEdit, &QLineEdit::textChanged, this, &Settings::checkForChange);
     connect(m_ui->audioOutputsCombo, &QComboBox::currentIndexChanged, this, &Settings::checkForChange);
-    connect(m_ui->applyInterfaceSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
-    connect(m_ui->applyAudioSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
-    connect(m_ui->applyPlaylistSettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
+    connect(m_ui->applySettingsButton, &QPushButton::clicked, this, &Settings::applyChanges);
 
     connect(
         m_ui->rememberVolumeLevelCheckBox,
@@ -256,26 +263,6 @@ void Settings::closeEvent(QCloseEvent *event)
     QWidget::closeEvent(event);
 }
 
-void Settings::onCurrentChanged(int index)
-{
-    if (not windowTitle().contains('*')) {
-        return;
-    }
-
-    switch (index)
-    {
-    case 0:
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
-        break;
-    case 1:
-        m_ui->applyAudioSettingsButton->setEnabled(true);
-        break;
-    case 2:
-        m_ui->applyPlaylistSettingsButton->setEnabled(true);
-        break;
-    }
-}
-
 QString Settings::createEnvironment(const QString &location)
 {
     QString configLocation;
@@ -340,7 +327,10 @@ void Settings::setInitialValues()
     m_initialCheckBoxesValues[m_ui->centeredCheckBox] = m_ui->centeredCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] = m_ui->alwaysMaximizedCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] = m_ui->minimizeToSystrayCheckBox->isChecked();
-    m_initialCheckBoxesValues[m_ui->hideControlsCheckBox] = m_ui->hideControlsCheckBox->isChecked();
+    m_initialCheckBoxesValues[m_ui->hideControlsAtStartupCheckBox] = m_ui->hideControlsAtStartupCheckBox->isChecked();
+#ifdef ENABLE_VIDEO_PLAYER
+    m_initialCheckBoxesValues[m_ui->hideControlsOnVideoCheckBox] = m_ui->hideControlsOnVideoCheckBox->isChecked();
+#endif
     m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] = m_ui->rememberVolumeLevelCheckBox->isChecked();
     m_initialCheckBoxesValues[m_ui->rememberLastSongCheckBox] = m_ui->rememberLastSongCheckBox->isChecked();
 
@@ -358,79 +348,87 @@ void Settings::checkForChange()
 {
     bool changed {false};
     if (m_initialCheckBoxesValues[m_ui->rememberWindowSizeCheckBox] != m_ui->rememberWindowSizeCheckBox->isChecked()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->centeredCheckBox] != m_ui->centeredCheckBox->isChecked()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->alwaysMaximizedCheckBox] != m_ui->alwaysMaximizedCheckBox->isChecked()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->minimizeToSystrayCheckBox] != m_ui->minimizeToSystrayCheckBox->isChecked()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
-    if (m_initialCheckBoxesValues[m_ui->hideControlsCheckBox] != m_ui->hideControlsCheckBox->isChecked()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+    if (m_initialCheckBoxesValues[m_ui->hideControlsAtStartupCheckBox] != m_ui->hideControlsAtStartupCheckBox->isChecked()) {
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
+
+#ifdef ENABLE_VIDEO_PLAYER
+    if (m_initialCheckBoxesValues[m_ui->hideControlsOnVideoCheckBox] != m_ui->hideControlsOnVideoCheckBox->isChecked()) {
+        m_ui->applySettingsButton->setEnabled(true);
+        changed = true;
+        goto exit;
+    }
+#endif
 
     if (m_initialCheckBoxesValues[m_ui->rememberVolumeLevelCheckBox] != m_ui->rememberVolumeLevelCheckBox->isChecked()) {
-        m_ui->applyAudioSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialCheckBoxesValues[m_ui->rememberLastSongCheckBox] != m_ui->rememberLastSongCheckBox->isChecked()) {
-        m_ui->applyPlaylistSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialFieldValues[m_ui->widthEdit] != m_ui->widthEdit->text()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialFieldValues[m_ui->heightEdit] != m_ui->heightEdit->text()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialFieldValues[m_ui->volumeLevelEdit] != m_ui->volumeLevelEdit->text()) {
-        m_ui->applyAudioSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialComboBoxValues[m_ui->defaultPlaylistComboBox] != m_ui->defaultPlaylistComboBox->currentIndex()) {
-        m_ui->applyPlaylistSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialComboBoxValues[m_ui->audioOutputsCombo] != m_ui->audioOutputsCombo->currentIndex()) {
-        m_ui->applyAudioSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
 
     if (m_initialComboBoxValues[m_ui->defaultLanguageComboBox] != m_ui->defaultLanguageComboBox->currentIndex()) {
-        m_ui->applyInterfaceSettingsButton->setEnabled(true);
+        m_ui->applySettingsButton->setEnabled(true);
         changed = true;
         goto exit;
     }
@@ -448,9 +446,7 @@ exit:
             setWindowTitle(title);
         }
 
-        m_ui->applyInterfaceSettingsButton->setEnabled(false);
-        m_ui->applyAudioSettingsButton->setEnabled(false);
-        m_ui->applyPlaylistSettingsButton->setEnabled(false);
+        m_ui->applySettingsButton->setEnabled(false);
     }
 }
 
@@ -531,7 +527,10 @@ void Settings::applyChanges()
     bool centered = m_ui->centeredCheckBox->isChecked();
     bool alwaysMaximized = m_ui->alwaysMaximizedCheckBox->isChecked();
     bool minimizeToSystray = m_ui->minimizeToSystrayCheckBox->isChecked();
-    bool hideControls = m_ui->hideControlsCheckBox->isChecked();
+    bool hideControlsAtStartup = m_ui->hideControlsAtStartupCheckBox->isChecked();
+#ifdef ENABLE_VIDEO_PLAYER
+    bool hideControlsOnVideo = m_ui->hideControlsOnVideoCheckBox->isChecked();
+#endif
     QString defaultLanguage = m_ui->defaultLanguageComboBox->currentText();
     bool rememberVolumeLevel = m_ui->rememberVolumeLevelCheckBox->isChecked();
     int width {-1};
@@ -592,7 +591,10 @@ void Settings::applyChanges()
     m_settings->setValue("Centered", centered);
     m_settings->setValue("AlwaysMaximized", alwaysMaximized);
     m_settings->setValue("MinimizeToSystray", minimizeToSystray);
-    m_settings->setValue("HideControls", hideControls);
+    m_settings->setValue("HideControlsAtStartup", hideControlsAtStartup);
+#ifdef ENABLE_VIDEO_PLAYER
+    m_settings->setValue("HideControlsOnVideo", hideControlsOnVideo);
+#endif
 
     if (width >= 0)
         m_settings->setValue("Width", width);
@@ -634,7 +636,5 @@ void Settings::applyChanges()
     setInitialValues();
     m_modified = false;
     m_changesApplied = true;
-    m_ui->applyInterfaceSettingsButton->setEnabled(m_modified);
-    m_ui->applyAudioSettingsButton->setEnabled(m_modified);
-    m_ui->applyPlaylistSettingsButton->setEnabled(m_modified);
+    m_ui->applySettingsButton->setEnabled(m_modified);
 }
