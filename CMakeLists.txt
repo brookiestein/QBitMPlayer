@@ -17,6 +17,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools Multimedia Widgets)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if (UNIX)
+        set(ENABLE_IPC 1)
+        set(SINGLE_INSTANCE 1)
+    endif()
+
+    set(ENABLE_NOTIFICATIONS 1)
+    set(ENABLE_VIDEO_PLAYER 1)
+endif()
+
 if (ENABLE_IPC)
     find_package(QT NAMES Qt6 REQUIRED COMPONENTS DBus)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED DBus)
